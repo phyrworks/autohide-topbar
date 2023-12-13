@@ -1,3 +1,6 @@
+# NOTE: The instructions below are for the original Hide Top Bar extension.  This repository is for a remixed version, renamed to Autohide Top Bar. The current repository here is for Gnome 45+ only, and is not yet fully functional for all of the original options. The changes in this repository have not yet been reviewed, and are currently only installable by source.
+
+
 About Hide Top Bar
 ------------------
 

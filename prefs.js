@@ -40,11 +40,10 @@ export default class HideTopBar_Preferences extends ExtensionPreferences {
     }
 
     fillPreferencesWindow(window) {
-        const isGtk4 = Gtk.get_major_version() >= '4';
 
         let builder = new Gtk.Builder();
         builder.set_translation_domain("hidetopbar");
-        let settingsPath = '/Settings-40.ui';
+        let settingsPath = '/Settings-45.ui';
         builder.add_from_file(this.path + settingsPath);
 
         let notebook = builder.get_object("settings_notebook");
