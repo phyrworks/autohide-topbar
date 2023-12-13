@@ -17,29 +17,43 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const GLib = imports.gi.GLib;
-const Meta = imports.gi.Meta;
-const Shell = imports.gi.Shell;
-const Clutter = imports.gi.Clutter;
+// const GLib = imports.gi.GLib;
+// const Meta = imports.gi.Meta;
+// const Shell = imports.gi.Shell;
+// const Clutter = imports.gi.Clutter;
+import GLib from 'gi://GLib';
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
+import Clutter from 'gi://Clutter';
 
-const Main = imports.ui.main;
-const Layout = imports.ui.layout;
-const PointerWatcher = imports.ui.pointerWatcher;
 
-const Me = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
-const Intellihide = Me.imports.intellihide;
-const DesktopIconsIntegration = Me.imports.desktopIconsIntegration;
-const DEBUG = Convenience.DEBUG;
+// const Main = imports.ui.main;
+// const Layout = imports.ui.layout;
+// const PointerWatcher = imports.ui.pointerWatcher;
+
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
+import * as PointerWatcher from 'resource:///org/gnome/shell/ui/pointerWatcher.js';
+
+
+// const Me = imports.misc.extensionUtils.getCurrentExtension();
+// const Convenience = Me.imports.convenience;
+// const Intellihide = Me.imports.intellihide;
+// const DesktopIconsIntegration = Me.imports.desktopIconsIntegration;
+// const DEBUG = Convenience.DEBUG;
+
+import {DEBUG, GlobalSignalsHandler} from './convenience.js';
+import * as Intellihide from './intellihide.js';
+import {DesktopIconsUsableAreaClass} from './desktopIconsIntegration.js';
 
 const MessageTray = Main.messageTray;
 const PanelBox = Main.layoutManager.panelBox;
 const ShellActionMode = (Shell.ActionMode)?Shell.ActionMode:Shell.KeyBindingMode;
 const _searchEntryBin = Main.overview._overview._controls._searchEntryBin;
 
-var PanelVisibilityManager = class HideTopBar_PanelVisibilityManager {
+export class PanelVisibilityManager {
 
-    constructor(settings, monitorIndex) {
+    constructor(settings, monitorIndex, uuid) {
         this._monitorIndex = monitorIndex;
         this._base_y = PanelBox.y;
         this._settings = settings;
@@ -50,7 +64,7 @@ var PanelVisibilityManager = class HideTopBar_PanelVisibilityManager {
         this._animationActive = false;
         this._shortcutTimeout = null;
 
-        this._desktopIconsUsableArea = new DesktopIconsIntegration.DesktopIconsUsableAreaClass(null);
+        this._desktopIconsUsableArea = new DesktopIconsUsableAreaClass(uuid);
         Main.layoutManager.removeChrome(PanelBox);
         Main.layoutManager.addChrome(PanelBox, {
             affectsStruts: false,
@@ -391,7 +405,7 @@ var PanelVisibilityManager = class HideTopBar_PanelVisibilityManager {
     }
 
     _bindUIChanges() {
-        this._signalsHandler = new Convenience.GlobalSignalsHandler();
+        this._signalsHandler = new GlobalSignalsHandler();
         this._signalsHandler.add(
             [
                 Main.overview,
@@ -470,7 +484,7 @@ var PanelVisibilityManager = class HideTopBar_PanelVisibilityManager {
     }
 
     _bindSettingsChanges() {
-        this._signalsHandler = new Convenience.GlobalSignalsHandler();
+        this._signalsHandler = new GlobalSignalsHandler();
         this._signalsHandler.addWithLabel("settings",
             [
                 this._settings,

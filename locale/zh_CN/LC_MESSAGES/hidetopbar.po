@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hidetopbar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-26 18:45+0800\n"
+"POT-Creation-Date: 2023-12-06 08:22-0800\n"
 "PO-Revision-Date: 2022-03-26 19:15+0800\n"
 "Last-Translator: Rubicon Rowe <l1589002388@gmail.com>\n"
 "Language-Team: Chinese - China <>\n"
@@ -20,6 +20,10 @@ msgstr ""
 "X-Generator: Gtranslator 40.0\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=1; plural=0\n"
+
+#: prefs.js:54
+msgid "General"
+msgstr ""
 
 #: Settings-40.ui:65
 msgid "Show panel when mouse approaches edge of the screen"
