@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="autohide_topbar@phyrworks.github.com">
+  <template class="Animation" parent="AdwPreferencesPage">
+    <property name="name">animation_page</property>
+    <property name="title" translatable="yes">Animation</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Animation</property>
+        <child>
+            <object class="AdwSpinRow" id="animation_time_overview">
+              <property name="title" translatable="yes">Slide animation time when entering/leaving overview:</property>
+              <property name="tooltip-text" translatable="yes">Amount of time it takes to slide the panel in/out when entering/leaving overview.</property>
+              <property name="digits">1</property>
+              <property name="adjustment">
+                <object class="GtkAdjustment">
+                  <property name="lower">0.0</property>
+                  <property name="upper">1.0</property>
+                  <property name="value">0.4</property>
+                  <property name="page-increment">0.10</property>
+                  <property name="step-increment">0.10</property>
+                </object>
+              </property>
+            </object>
+          </child>
+          <child>
+            <object class="AdwSpinRow" id="animation_time_autohide">
+              <property name="title" translatable="yes">Slide animation time when mouse approaches edge of the screen:</property>
+              <property name="tooltip-text" translatable="yes">Amount of time it takes to slide the panel in/out when the mouse approaches the edge of the screen.</property>
+              <property name="digits">1</property>
+              <property name="adjustment">
+                <object class="GtkAdjustment">
+                  <property name="lower">0.0</property>
+                  <property name="upper">1.0</property>
+                  <property name="value">0.2</property>
+                  <property name="page-increment">0.10</property>
+                  <property name="step-increment">0.10</property>
+                </object>
+              </property>
+            </object>
+          </child>
+      </object>
+    </child>
+  </template>
+
+</interface>

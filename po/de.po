@@ -1,0 +1,143 @@
+# German translation for the Hide Top Bar extension.
+# Copyright (C) 2021 Thomas Vogt
+# This file is distributed under the same license as the Hide Top Bar package.
+# jonnius <jonatan_zeidler@gmx.de>, 2013.
+# Tobias Frost <tobi@coldtobi.de>, 2014.
+# Vinzenz Vietzke <vinz@vinzv.de>, 2018.
+msgid ""
+msgstr ""
+"Project-Id-Version: hidetopbar\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-12-14 15:55-0800\n"
+"PO-Revision-Date: 2021-09-14 11:49+0200\n"
+"Last-Translator: Philipp Kiemle <philipp.kiemle@gmail.com>\n"
+"Language-Team: German <>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: sensitivity.ui:6 sensitivity.ui:9
+msgid "Sensitivity"
+msgstr "Empfindlichkeit"
+
+#: sensitivity.ui:12
+msgid "Show panel when mouse approaches edge of the screen"
+msgstr "Panel anzeigen, wenn die Maus den oberen Bildschirmrand berührt"
+
+#: sensitivity.ui:13
+msgid ""
+"When enabled, show panel not only in overview but also when the mouse "
+"approaches the edge of the screen"
+msgstr ""
+
+#: sensitivity.ui:18
+msgid "Show panel when fullscreen"
+msgstr ""
+
+#: sensitivity.ui:19
+msgid ""
+"When enabled, also show panel when mouse approaches edge of the screen when "
+"windows are in fullscreen mode"
+msgstr ""
+
+#: sensitivity.ui:24
+msgid "Show panel in overview"
+msgstr "Panel in der Übersicht anzeigen"
+
+#: sensitivity.ui:25
+msgid "When enabled, the panel will be visible in overview"
+msgstr ""
+
+#: sensitivity.ui:30
+msgid "Keep hot corner sensitive, even in hidden state"
+msgstr "Funktionale Ecke aktiviert lassen, selbst wenn das Panel versteckt ist"
+
+#: sensitivity.ui:31
+msgid ""
+"When enabled, keeps the hot corner sensitive even when panel is in hidden"
+msgstr ""
+
+#: sensitivity.ui:36
+msgid "Show overview when mouse approaches edge of the screen"
+msgstr ""
+
+#: sensitivity.ui:37
+msgid ""
+"When enabled, the panel and overview are both shown when the mouse "
+"approaches the edge of the screen"
+msgstr ""
+
+#: sensitivity.ui:42
+#, fuzzy
+msgid "Keep round corners when top bar is hidden"
+msgstr "Funktionale Ecke aktiviert lassen, selbst wenn das Panel versteckt ist"
+
+#: sensitivity.ui:43
+msgid ""
+"When enabled, keep the round corners on the top even when the panel is hidden"
+msgstr ""
+
+#: sensitivity.ui:48
+msgid "Pressure barrier's threshold:"
+msgstr "Schwellenwert der Druckempfindlichkeit:"
+
+#: sensitivity.ui:49
+msgid ""
+"Number of pixels the mouse has to overrun in order to trigger the pressure "
+"barrier"
+msgstr ""
+
+#: sensitivity.ui:63
+msgid "Pressure barrier's timeout:"
+msgstr "Time-Out der Druckempfindlichkeit:"
+
+#: sensitivity.ui:64
+msgid "Amount of time in milliseconds before pressure barrier is triggered"
+msgstr ""
+
+#~ msgid "In the above case, also show panel when fullscreen"
+#~ msgstr "In obigem Fall das Panel auch im Vollbildmodus anzeigen"
+
+#~ msgid "In the above case show overview, too"
+#~ msgstr "In obigem Fall auch in die Übersicht wechseln"
+
+#~ msgid "Slide animation time when entering/leaving overview:"
+#~ msgstr "Animationszeit beim Betreten/Verlassen der Übersicht:"
+
+#~ msgid "Slide animation time when mouse approaches edge of the screen:"
+#~ msgstr "Animationszeit, wenn die Maus den Bildschirmrand berührt:"
+
+#~ msgid "Animation"
+#~ msgstr "Animation"
+
+#~ msgid ""
+#~ "Key that triggers the bar to be shown (press backspace to deactivate the "
+#~ "shortcut):"
+#~ msgstr ""
+#~ "Taste, um die Leiste anzuzeigen (Rücktaste drücken um zu deaktivieren):"
+
+#~ msgid ""
+#~ "Delay before the bar rehides after key press (a value of 0 disables the "
+#~ "rehiding):"
+#~ msgstr ""
+#~ "Zeit, nach der die Leiste nach dem Drücken der Taste wieder ausgeblendet "
+#~ "wird (beim Wert 0 wird nicht automatisch ausgeblendet):"
+
+#~ msgid "Pressing the shortcut again rehides the panel"
+#~ msgstr "Erneutes Drücken des Tastenkürzels versteckt die Leiste wieder"
+
+#~ msgid "Keyboard shortcuts"
+#~ msgstr "Tastaturkürzel"
+
+#~ msgid "Only hide panel when a window takes the space"
+#~ msgstr "Panel nur verstecken, wenn ein Fenster im Weg ist"
+
+#~ msgid "Only when the active window takes the space"
+#~ msgstr "Nur wenn das aktive Fenster im Weg ist"
+
+#~ msgid "Intellihide"
+#~ msgstr "Intelligentes Ausblenden"
