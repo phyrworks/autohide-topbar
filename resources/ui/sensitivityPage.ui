@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="autohide_topbar@phyrworks.github.com">
+  <template class="Sensitivity" parent="AdwPreferencesPage">
+    <property name="name">sensitivity_page</property>
+    <property name="title" translatable="yes">Sensitivity</property>
+    <property name="icon-name">sensitivity-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Sensitivity</property>
+          <child>
+            <object class="AdwSwitchRow" id="mouse_sensitive">
+              <property name="title" translatable="yes">Show panel when mouse approaches edge of the screen</property>
+              <property name="tooltip-text" translatable="yes">When enabled, show panel not only in overview but also when the mouse approaches the edge of the screen</property>
+          </object>
+          </child>
+          <child>
+            <object class="AdwSwitchRow" id="mouse_sensitive_fullscreen_window">
+              <property name="title" translatable="yes">Show panel when fullscreen</property>
+              <property name="tooltip-text" translatable="yes">When enabled, also show panel when mouse approaches edge of the screen when windows are in fullscreen mode</property>
+            </object>
+          </child>  
+          <child>
+            <object class= "AdwSwitchRow" id="show_in_overview">
+              <property name="title" translatable="yes">Show panel in overview</property>
+              <property name="tooltip-text" translatable="yes">When enabled, the panel will be visible in overview</property>
+            </object>
+          </child>
+          <child>
+            <object class="AdwSwitchRow" id="hot_corner">
+              <property name="title" translatable="yes">Keep hot corner sensitive, even in hidden state</property>
+              <property name="tooltip-text" translatable="yes">When enabled, keeps the hot corner sensitive even when panel is in hidden</property>
+            </object>
+          </child>
+          <child>
+            <object class="AdwSwitchRow" id="mouse_triggers_overview">
+              <property name="title" translatable="yes">Show overview when mouse approaches edge of the screen</property>
+              <property name="tooltip-text" translatable="yes">When enabled, the panel and overview are both shown when the mouse approaches the edge of the screen</property>
+            </object>
+          </child>
+          <child>
+            <object class="AdwSwitchRow" id="keep_round_corners">
+              <property name="title" translatable="yes">Keep round corners when top bar is hidden</property>
+              <property name="tooltip-text" translatable="yes">When enabled, keep the round corners on the top even when the panel is hidden</property>
+            </object>
+          </child>
+          <child>
+            <object class="AdwSpinRow" id="spin_pressure_threshold">
+              <property name="title" translatable="yes">Pressure barrier's threshold:</property>
+              <property name="tooltip-text" translatable="yes">Number of pixels the mouse has to overrun in order to trigger the pressure barrier</property>
+              <property name="adjustment">
+                <object class="GtkAdjustment">
+                  <property name="lower">0</property>
+                  <property name="upper">1000</property>
+                  <property name="value">100</property>
+                  <property name="page-increment">10</property>
+                  <property name="step-increment">1</property>
+                </object>
+              </property>
+            </object>
+          </child>
+          <child>
+            <object class="AdwSpinRow" id="spin_pressure_timeout">
+              <property name="title" translatable="yes">Pressure barrier's timeout:</property>
+              <property name="tooltip-text" translatable="yes">Amount of time in milliseconds before pressure barrier is triggered</property>
+              <property name="adjustment">
+                <object class="GtkAdjustment">
+                  <property name="lower">0</property>
+                  <property name="upper">10000</property>
+                  <property name="value">1000</property>
+                  <property name="page-increment">10</property>
+                  <property name="step-increment">1</property>
+                </object>
+              </property>
+            </object>
+          </child>
+      </object>
+    </child>
+  </template>
+
+</interface>

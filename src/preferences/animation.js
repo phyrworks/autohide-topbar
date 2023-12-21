@@ -5,7 +5,7 @@ import Gio from 'gi://Gio';
 
 export const Animation = GObject.registerClass({
 	GTypeName: 'Animation',
-	Template: GLib.uri_resolve_relative(import.meta.url, '../ui/animation.ui', GLib.UriFlags.NONE),
+	Template: GLib.uri_resolve_relative(import.meta.url, '../ui/animationPage.ui', GLib.UriFlags.NONE),
 	InternalChildren: [
         'animation_time_overview',
         'animation_time_autohide'

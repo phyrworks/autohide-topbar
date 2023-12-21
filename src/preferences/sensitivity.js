@@ -5,7 +5,7 @@ import Gio from 'gi://Gio';
 
 export const Sensitivity = GObject.registerClass({
 	GTypeName: 'Sensitivity',
-	Template: GLib.uri_resolve_relative(import.meta.url, '../ui/sensitivity.ui', GLib.UriFlags.NONE),
+	Template: GLib.uri_resolve_relative(import.meta.url, '../ui/sensitivityPage.ui', GLib.UriFlags.NONE),
 	InternalChildren: [
 		'mouse_sensitive',
 		'mouse_sensitive_fullscreen_window',
@@ -23,7 +23,8 @@ export const Sensitivity = GObject.registerClass({
 		this.settings = settings;
 
 		this.settings.bind(
-			'mouse-sensitive', this._mouse_sensitive, 'active', 
+			'mouse-sensitive', 
+			this._mouse_sensitive, 'active', 
 			Gio.SettingsBindFlags.DEFAULT
 		);
 		this.settings.bind(

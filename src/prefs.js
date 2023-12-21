@@ -25,6 +25,7 @@ import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk?version=4.0';
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 import { Animation } from './preferences/animation.js';
+import { Intellihide } from './preferences/intellihide.js';
 import { Sensitivity } from './preferences/sensitivity.js';
 
 // const Gettext = imports.gettext.domain('hidetopbar');
@@ -33,7 +34,15 @@ import { Sensitivity } from './preferences/sensitivity.js';
 // const ExtensionUtils = imports.misc.extensionUtils;
 // const Me = ExtensionUtils.getCurrentExtension();
 
-export default class HideTopBar_Preferences extends ExtensionPreferences {
+export default class HideTopBarPreferences extends ExtensionPreferences {
+    constructor(metadata) {
+        super(metadata);
+
+        // load the icon theme
+        let iconPath = this.dir.get_child("icons").get_path();
+        let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+        iconTheme.add_search_path(iconPath);
+    }
 
     fillPreferencesWindow(window) {
 
@@ -41,6 +50,7 @@ export default class HideTopBar_Preferences extends ExtensionPreferences {
 
         window.add(new Sensitivity(preferences));
         window.add(new Animation(preferences));
+        window.add(new Intellihide(preferences));
 
         // let builder = new Gtk.Builder();
         // builder.set_translation_domain("hidetopbar");
