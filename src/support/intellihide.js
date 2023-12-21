@@ -22,19 +22,14 @@
 // modifications. Dash to Dock is distributed under the terms of the GNU
 // General Public License, version 2 or later.
 
-// const GLib = imports.gi.GLib;
-// const Meta = imports.gi.Meta;
-// const Shell = imports.gi.Shell;
 
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 
-// const Main = imports.ui.main;
 const Signals = imports.signals;
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-// import * as Signals from 'resource:///org/gnome/shell/misc/signals.js';
 
 import {getMonitorManager, GlobalSignalsHandler} from './convenience.js';
 
@@ -68,7 +63,7 @@ const handledWindowTypes = [
 
 /**
  * A rough and ugly implementation of the intellihide behaviour.
- * Intallihide object: emit 'status-changed' signal when the overlap of windows
+ * Intellihide object: emit 'status-changed' signal when the overlap of windows
  * with the provided targetBoxClutter.ActorBox changes;
  */
 export class Intellihide {

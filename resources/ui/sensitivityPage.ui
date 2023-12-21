@@ -38,12 +38,6 @@
             </object>
           </child>
           <child>
-            <object class="AdwSwitchRow" id="keep_round_corners">
-              <property name="title" translatable="yes">Keep round corners when top bar is hidden</property>
-              <property name="tooltip-text" translatable="yes">When enabled, keep the round corners on the top even when the panel is hidden</property>
-            </object>
-          </child>
-          <child>
             <object class="AdwSpinRow" id="spin_pressure_threshold">
               <property name="title" translatable="yes">Pressure barrier's threshold:</property>
               <property name="tooltip-text" translatable="yes">Number of pixels the mouse has to overrun in order to trigger the pressure barrier</property>

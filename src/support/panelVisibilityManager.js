@@ -17,30 +17,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// const GLib = imports.gi.GLib;
-// const Meta = imports.gi.Meta;
-// const Shell = imports.gi.Shell;
-// const Clutter = imports.gi.Clutter;
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import Clutter from 'gi://Clutter';
 
-
-// const Main = imports.ui.main;
-// const Layout = imports.ui.layout;
-// const PointerWatcher = imports.ui.pointerWatcher;
-
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
 import * as PointerWatcher from 'resource:///org/gnome/shell/ui/pointerWatcher.js';
-
-
-// const Me = imports.misc.extensionUtils.getCurrentExtension();
-// const Convenience = Me.imports.convenience;
-// const Intellihide = Me.imports.intellihide;
-// const DesktopIconsIntegration = Me.imports.desktopIconsIntegration;
-// const DEBUG = Convenience.DEBUG;
 
 import {DEBUG, GlobalSignalsHandler} from './convenience.js';
 import * as Intellihide from './intellihide.js';
@@ -122,9 +106,7 @@ export class PanelVisibilityManager {
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
                 this._animationActive = false;
-                if (!this._settings.get_boolean('keep-round-corners')) {
-                    PanelBox.hide();
-                }
+                PanelBox.hide();
                 this._updateHotCorner(true);
             }
         });

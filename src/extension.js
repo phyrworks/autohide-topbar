@@ -17,17 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// const Main = imports.ui.main;
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-
-// const ExtensionUtils = imports.misc.extensionUtils;
-
-// const Me = ExtensionUtils.getCurrentExtension();
-// const PanelVisibilityManager = Me.imports.panelVisibilityManager;
 import {PanelVisibilityManager} from './support/panelVisibilityManager.js';
-
-// const DEBUG = Me.imports.convenience.DEBUG;
 import {DEBUG} from './support/convenience.js';
 
 export default class HideTopBar_Extension extends Extension {

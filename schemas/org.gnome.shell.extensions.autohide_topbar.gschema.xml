@@ -30,13 +30,6 @@
         When "mouse-sensitive" is set to "true" and this key is activated, not only the panel but also the overview is shown when the mouse approaches the edge of the screen.
       </description>
     </key>
-    <key name="keep-round-corners" type="b">
-      <default>false</default>
-      <summary>Keep round corners on the top</summary>
-      <description>
-        Set to "true" to keep the round corners on the top even when the panel is hidden.
-      </description>
-    </key>
     <key name="animation-time-overview" type="d">
       <default>0.4</default>
       <summary>Slide animation time when entering/leaving overview:</summary>
@@ -51,14 +44,14 @@
         Amount of time it takes to slide the panel in/out when the mouse approaches the edge of the screen.
       </description>
     </key>
-    <key name="spin-pressure-threshold" type="i">
+    <key name="pressure-threshold" type="i">
       <default>100</default>
       <summary>Pressure barrier's threshold</summary>
       <description>
         Number of pixels the mouse has to overrun in order to trigger the pressure barrier.
       </description>
     </key>
-    <key name="spin-pressure-timeout" type="i">
+    <key name="pressure-timeout" type="i">
       <default>1000</default>
       <summary>Pressure barrier's timeout</summary>
       <description>

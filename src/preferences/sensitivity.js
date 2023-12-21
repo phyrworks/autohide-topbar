@@ -12,7 +12,6 @@ export const Sensitivity = GObject.registerClass({
 		'show_in_overview',
 		'hot_corner',
 		'mouse_triggers_overview',
-		'keep_round_corners',
 		'spin_pressure_threshold',
 		'spin_pressure_timeout'
 	],
@@ -48,17 +47,12 @@ export const Sensitivity = GObject.registerClass({
 			Gio.SettingsBindFlags.DEFAULT
 		);
 		this.settings.bind(
-			"keep-round-corners",
-			this._keep_round_corners, 'active',
-			Gio.SettingsBindFlags.DEFAULT
-		);
-		this.settings.bind(
-			'spin-pressure-threshold',
+			'pressure-threshold',
 			this._spin_pressure_threshold, 'value',
 			Gio.SettingsBindFlags.DEFAULT
 		);
 		this.settings.bind(
-			'spin-pressure-timeout',
+			'pressure-timeout',
 			this._spin_pressure_timeout, 'value',
 			Gio.SettingsBindFlags.DEFAULT
 		);
