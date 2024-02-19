@@ -23,8 +23,10 @@
 // General Public License, version 2 or later.
 
 
+import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
+import Mtk from 'gi://Mtk';
 import Shell from 'gi://Shell';
 
 const Signals = imports.signals;
@@ -67,28 +69,26 @@ const handledWindowTypes = [
  * with the provided targetBoxClutter.ActorBox changes;
  */
 export class Intellihide {
+    #settings = null;
+    #monitorIndex = null;
+    #signalsHandler = new GlobalSignalsHandler();
+    #tracker = Shell.WindowTracker.get_default();
+    #focusApp = null; // The application whose window is focused.
+    #topApp = null; // The application whose window is on top on the monitor with the dock.
+    #isEnabled = false;
+    #status = OverlapStatus.UNDEFINED;
+    #targetBox = new Clutter.ActorBox();
+    #checkOverlapTimeoutContinue = false;
+    #checkOverlapTimeoutId = 0;
+    #trackedWindows = new Map();
 
     constructor(settings, monitorIndex) {
         // Load settings
-        this._settings = settings;
-        this._monitorIndex = monitorIndex;
-
-        this._signalsHandler = new GlobalSignalsHandler();
-        this._tracker = Shell.WindowTracker.get_default();
-        this._focusApp = null; // The application whose window is focused.
-        this._topApp = null; // The application whose window is on top on the monitor with the dock.
-
-        this._isEnabled = false;
-        this._status = OverlapStatus.UNDEFINED;
-        this._targetBox = null;
-
-        this._checkOverlapTimeoutContinue = false;
-        this._checkOverlapTimeoutId = 0;
-
-        this._trackedWindows = new Map();
+        this.#settings = settings;
+        this.#monitorIndex = monitorIndex;
 
         // Connect global signals
-        this._signalsHandler.add([
+        this.#signalsHandler.add([
             // Listen for notification banners to appear or disappear
             Main.messageTray,
             'show',
@@ -111,7 +111,7 @@ export class Intellihide {
         ], [
             // when windows are alwasy on top, the focus window can change
             // without the windows being restacked. Thus monitor window focus change.
-            this._tracker,
+            this.#tracker,
             'notify::focus-app',
             this._checkOverlap.bind(this)
         ], [
@@ -124,15 +124,22 @@ export class Intellihide {
 
     destroy() {
         // Disconnect global signals
-        this._signalsHandler.destroy();
+        this.#signalsHandler.destroy();
+
+        this.#targetBox.destroy();
 
         // Remove  residual windows signals
         this.disable();
     }
 
+    get enabled() { return Boolean(this.#isEnabled && this.#targetBox); }
+    set enabled(value) {
+        value ? this.enable() : this.disable();
+    }
+
     enable() {
-        this._isEnabled = true;
-        this._status = OverlapStatus.UNDEFINED;
+        this.enabled = true;
+        this.#status = OverlapStatus.UNDEFINED;
         global.get_window_actors().forEach(function(wa) {
             this._addWindowSignals(wa);
         }, this);
@@ -140,17 +147,26 @@ export class Intellihide {
     }
 
     disable() {
-        this._isEnabled = false;
+        this.enabled = false;
 
-        for (let wa of this._trackedWindows.keys()) {
+        for (let wa of this.#trackedWindows.keys()) {
             this._removeWindowSignals(wa);
         }
-        this._trackedWindows.clear();
+        this.#trackedWindows.clear();
 
-        if (this._checkOverlapTimeoutId > 0) {
-            GLib.source_remove(this._checkOverlapTimeoutId);
-            this._checkOverlapTimeoutId = 0;
+        if (this.#checkOverlapTimeoutId > 0) {
+            GLib.source_remove(this.#checkOverlapTimeoutId);
+            this.#checkOverlapTimeoutId = 0;
         }
+    }
+
+    isPointerInsideBox(point) {
+        const [x, y] = point || global.get_pointer();
+        return this.#targetBox.contains(x, y);
+    }
+
+    isPointerOutsideBox(point) {
+        return !this.isPointerInsideBox(point);
     }
 
     _windowCreated(display, metaWindow) {
@@ -161,121 +177,98 @@ export class Intellihide {
         if (!this._handledWindow(wa))
             return;
         let signalId = wa.connect('notify::allocation', this._checkOverlap.bind(this));
-        this._trackedWindows.set(wa, signalId);
+        this.#trackedWindows.set(wa, signalId);
         wa.connect('destroy', this._removeWindowSignals.bind(this));
     }
 
     _removeWindowSignals(wa) {
-        if (this._trackedWindows.get(wa)) {
-           wa.disconnect(this._trackedWindows.get(wa));
-           this._trackedWindows.delete(wa);
+        if (this.#trackedWindows.get(wa)) {
+           wa.disconnect(this.#trackedWindows.get(wa));
+           this.#trackedWindows.delete(wa);
         }
     }
 
-    updateTargetBox(box) {
-        this._targetBox = box;
+    set targetRect(rect) {
+        this.#targetBox.init_rect(...rect);
         this._checkOverlap();
     }
 
     forceUpdate() {
-        this._status = OverlapStatus.UNDEFINED;
+        this.#status = OverlapStatus.UNDEFINED;
         this._doCheckOverlap();
     }
 
-    getOverlapStatus() {
-        return (this._status == OverlapStatus.TRUE);
+    get overlapStatus() {
+        return (this.#status == OverlapStatus.TRUE);
     }
 
     _checkOverlap() {
-        if (!this._isEnabled || (this._targetBox == null))
-            return;
+        if (!this.enabled) return;
 
         /* Limit the number of calls to the doCheckOverlap function */
-        if (this._checkOverlapTimeoutId) {
-            this._checkOverlapTimeoutContinue = true;
+        if (this.#checkOverlapTimeoutId) {
+            this.#checkOverlapTimeoutContinue = true;
             return
         }
 
         this._doCheckOverlap();
 
-        this._checkOverlapTimeoutId = GLib.timeout_add(
+        this.#checkOverlapTimeoutId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT, INTELLIHIDE_CHECK_INTERVAL, () => {
             this._doCheckOverlap();
-            if (this._checkOverlapTimeoutContinue) {
-                this._checkOverlapTimeoutContinue = false;
+            if (this.#checkOverlapTimeoutContinue) {
+                this.#checkOverlapTimeoutContinue = false;
                 return GLib.SOURCE_CONTINUE;
             } else {
-                this._checkOverlapTimeoutId = 0;
-                return GLib.SOURCE_REMOVE;
+                this.#checkOverlapTimeoutId = 0;
+                return GLib.SOURCE_REMOVE;this.#isEnabled || (this.#targetBox == null)
             }
         });
     }
 
     _doCheckOverlap() {
 
-        if (!this._isEnabled || (this._targetBox == null))
-            return;
+        if (!this.enabled) return;
 
         let overlaps = OverlapStatus.FALSE;
         let windows = global.get_window_actors();
 
-        if (windows.length > 0) {
-            /*
-             * Get the top window on the monitor where the dock is placed.
-             * The idea is that we dont want to overlap with the windows of the topmost application,
-             * event is it's not the focused app -- for instance because in multimonitor the user
-             * select a window in the secondary monitor.
-             */
+        /*
+            * Get the top window on the monitor where the dock is placed.
+            * The idea is that we dont want to overlap with the windows of the topmost application,
+            * event is it's not the focused app -- for instance because in multimonitor the user
+            * select a window in the secondary monitor.
+            */
 
-            let topWindow = null;
-            for (let i = windows.length - 1; i >= 0; i--) {
-                let meta_win = windows[i].get_meta_window();
-                if (this._handledWindow(windows[i]) && (meta_win.get_monitor() == this._monitorIndex)) {
-                    topWindow = meta_win;
-                    break;
-                }
-            }
+        let topWindow = windows.findLast(
+            (win) => this._handledWindow(win) && (win.get_meta_window().get_monitor() == this.#monitorIndex)
+        );
 
-            if (topWindow !== null) {
-                this._topApp = this._tracker.get_window_app(topWindow);
-                // If there isn't a focused app, use that of the window on top
-                this._focusApp = this._tracker.focus_app || this._topApp
+        if (topWindow) {
+            this.#topApp = this.#tracker.get_window_app(topWindow);
+            // If there isn't a focused app, use that of the window on top
+            this.#focusApp = this.#tracker.focus_app || this.#topApp;
 
-                windows = windows.filter(this._intellihideFilterInteresting, this);
+            windows = windows.filter(this._intellihideFilterInteresting, this);
 
-                for (let i = 0;  i < windows.length; i++) {
-                    let win = windows[i].get_meta_window();
-
-                    if (win) {
-                        let rect = win.get_frame_rect();
-
-                        let test = (rect.x < this._targetBox.x2) &&
-                                   (rect.x + rect.width > this._targetBox.x1) &&
-                                   (rect.y < this._targetBox.y2) &&
-                                   (rect.y + rect.height > this._targetBox.y1);
-
-                        if (test) {
-                            overlaps = OverlapStatus.TRUE;
-                            break;
-                        }
-                    }
-                }
+            if (windows.some((win) => win.get_frame_rect().overlap(this.#targetBox.rect))) {
+                overlaps = OverlapStatus.TRUE;
             }
         }
 
         // Check if notification banner overlaps
         if (Main.messageTray.visible) {
             let rect = Main.messageTray._bannerBin.get_allocation_box();
-            let test = (rect.x1 < this._targetBox.x2) &&
-                    (rect.x2 > this._targetBox.x1) &&
-                    (rect.y1 < this._targetBox.y2) &&
-                    (rect.y2 > this._targetBox.y1);
+            let test = (rect.x1 < this.#targetBox.x2) &&
+                    (rect.x2 > this.#targetBox.x1) &&
+                    (rect.y1 < this.#targetBox.y2) &&
+                    (rect.y2 > this.#targetBox.y1);
             if (test) overlaps = OverlapStatus.TRUE;
         }
 
-        if (this._status !== overlaps) {
-            this._status = overlaps;
-            this.emit('status-changed', this._status);
+        if (this.#status !== overlaps) {
+            this.#status = overlaps;
+            this.emit('status-changed', this.#status);
         }
 
     }
@@ -293,20 +286,20 @@ export class Intellihide {
         let wksp_index = wksp.index();
 
         // Depending on the intellihide mode, exclude non-relevent windows
-        if (this._settings.get_boolean('enable-active-window')) {
+        if (this.#settings.get_boolean('enable-active-window')) {
                 // Skip windows of other apps
-                if (this._focusApp) {
+                if (this.#focusApp) {
                     // The DropDownTerminal extension is not an application per se
                     // so we match its window by wm class instead
                     if (meta_win.get_wm_class() == 'DropDownTerminalWindow')
                         return true;
 
-                    let currentApp = this._tracker.get_window_app(meta_win);
+                    let currentApp = this.#tracker.get_window_app(meta_win);
                     let focusWindow = global.display.get_focus_window()
 
                     // Consider half maximized windows side by side
                     // and windows which are alwayson top
-                    if((currentApp != this._focusApp) && (currentApp != this._topApp)
+                    if((currentApp != this.#focusApp) && (currentApp != this.#topApp)
                         && !((focusWindow && focusWindow.maximized_vertically && !focusWindow.maximized_horizontally)
                               && (meta_win.maximized_vertically && !meta_win.maximized_horizontally)
                               && meta_win.get_monitor() == focusWindow.get_monitor())

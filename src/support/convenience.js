@@ -23,7 +23,7 @@ import Meta from 'gi://Meta';
 
 export function DEBUG(message) {
     // Enable for debugging purposes.
-    if(false) console.debug(Date().substring(16,24) + " [hidetopbar]: " + message);
+    console.debug(Date().substring(16,24) + " [hidetopbar]: " + message);
 }
 
 // try to simplify global signals handling
