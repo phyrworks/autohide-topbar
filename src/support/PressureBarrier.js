@@ -4,63 +4,63 @@ import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
 import { ShellActionMode } from './panelVisibilityManager.js';
 
 export class PressureBarrier {
-    #panelPressure = null;
-    #panelBarrier = null;
+    panelPressure = null;
+    panelBarrier = null;
     #settings = null;
     #topPanel = null;
+    #callback = null;
 
-    constructor(settings, topPanel) {
+    constructor(settings, topPanel, callback) {
         this.#settings = settings;
         this.#topPanel = topPanel;
+        this.#callback = callback;
     }
 
-    get enabled() { return Boolean(this.#panelBarrier && this.#panelPressure) }
+    get enabled() { return Boolean(this.panelBarrier && this.panelPressure) }
     set enabled(value) {
         value ? this.enable() : this.disable();
     }
 
     enable() {
         this.disable();
-        this.#panelPressure = new Layout.PressureBarrier(
-            settings.get_int('pressure-threshold'),
-            settings.get_int('pressure-timeout'),
+        this.panelPressure = new Layout.PressureBarrier(
+            this.#settings.pressureThreshold,
+            this.#settings.pressureTimeout,
             ShellActionMode.NORMAL
         );
-        panelPressure.connect(
+
+        this.panelPressure.connect(
             'trigger',
             (barrier) => {
                 if (Main.layoutManager.primaryMonitor.inFullscreen
-                    && (!settings.get_boolean('mouse-sensitive-fullscreen-window'))) {
+                    && (!this.#settings.mouseSensitiveFullscreenWindow)) {
                     return;
                 }
-                this.show(
-                    settings.get_double('animation-time-autohide'),
-                    "mouse-enter"
-                );
+                this.#callback && this.#callback();
             }
         );
-        let anchor_y = topPanel.panelBox.get_pivot_point()[1], direction = Meta.BarrierDirection.POSITIVE_Y;
+        let anchor_y = this.#topPanel.anchor.y, direction = Meta.BarrierDirection.POSITIVE_Y;
         if (anchor_y < 0) {
-            anchor_y -= topPanel.panelBox.height;
+            anchor_y -= this.#topPanel.panelBox.height;
             direction = Meta.BarrierDirection.NEGATIVE_Y;
         }
-        this.#panelBarrier = new Meta.Barrier({
+        this.panelBarrier = new Meta.Barrier({
             display: global.display,
-            x1: topPanel.panelBox.x,
-            x2: topPanel.panelBox.x + topPanel.panelBox.width,
+            x1: this.#topPanel.x,
+            x2: this.#topPanel.x + this.#topPanel.width,
             y1: this._base_y - anchor_y,
             y2: this._base_y - anchor_y,
             directions: direction
         });
-        this.#panelPressure.addBarrier(this.#panelBarrier);
+        this.panelPressure.addBarrier(this.panelBarrier);
     }
 
     disable() {
         if (this.enabled) {
-            this.#panelPressure.removeBarrier(this.#panelBarrier);
-            this.#panelBarrier.destroy();
-            this.#panelBarrier = null;
-            this.#panelPressure = null;
+            this.panelPressure.removeBarrier(this.panelBarrier);
+            this.panelBarrier.destroy();
+            this.panelBarrier = null;
+            this.panelPressure = null;
         }
     }
 

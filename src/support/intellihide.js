@@ -23,17 +23,16 @@
 // General Public License, version 2 or later.
 
 
-import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
-import Mtk from 'gi://Mtk';
 import Shell from 'gi://Shell';
 
 const Signals = imports.signals;
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-import {getMonitorManager, GlobalSignalsHandler} from './convenience.js';
+import {getMonitorManager} from './convenience.js';
+import { TargetBox } from './TargetBox.js';
 
 // A good compromise between reactivity and efficiency; to be tuned.
 const INTELLIHIDE_CHECK_INTERVAL = 100;
@@ -71,13 +70,12 @@ const handledWindowTypes = [
 export class Intellihide {
     #settings = null;
     #monitorIndex = null;
-    #signalsHandler = new GlobalSignalsHandler();
     #tracker = Shell.WindowTracker.get_default();
     #focusApp = null; // The application whose window is focused.
     #topApp = null; // The application whose window is on top on the monitor with the dock.
     #isEnabled = false;
     #status = OverlapStatus.UNDEFINED;
-    #targetBox = new Clutter.ActorBox();
+    #targetBox = new TargetBox();
     #checkOverlapTimeoutContinue = false;
     #checkOverlapTimeoutId = 0;
     #trackedWindows = new Map();
@@ -88,7 +86,7 @@ export class Intellihide {
         this.#monitorIndex = monitorIndex;
 
         // Connect global signals
-        this.#signalsHandler.add([
+        this.#settings.bindWithLabel('intellihide', [
             // Listen for notification banners to appear or disappear
             Main.messageTray,
             'show',
@@ -124,7 +122,7 @@ export class Intellihide {
 
     destroy() {
         // Disconnect global signals
-        this.#signalsHandler.destroy();
+        this.#settings.unbindWithLabel('intellihide');
 
         this.#targetBox.destroy();
 
@@ -132,24 +130,24 @@ export class Intellihide {
         this.disable();
     }
 
-    get enabled() { return Boolean(this.#isEnabled && this.#targetBox); }
+    get enabled() { return this.#isEnabled; }
     set enabled(value) {
         value ? this.enable() : this.disable();
     }
 
     enable() {
-        this.enabled = true;
+        this.#isEnabled = true;
         this.#status = OverlapStatus.UNDEFINED;
-        global.get_window_actors().forEach(function(wa) {
+        for (let wa of global.get_window_actors()) {
             this._addWindowSignals(wa);
-        }, this);
+        }
         this._doCheckOverlap();
     }
 
     disable() {
-        this.enabled = false;
+        this.#isEnabled = false;
 
-        for (let wa of this.#trackedWindows.keys()) {
+        for (const wa of this.#trackedWindows.keys()) {
             this._removeWindowSignals(wa);
         }
         this.#trackedWindows.clear();
@@ -171,12 +169,12 @@ export class Intellihide {
 
     _windowCreated(display, metaWindow) {
         this._addWindowSignals(metaWindow.get_compositor_private());
+        this._doCheckOverlap();
     }
 
     _addWindowSignals(wa) {
-        if (!this._handledWindow(wa))
-            return;
-        let signalId = wa.connect('notify::allocation', this._checkOverlap.bind(this));
+        if (!this._handledWindow(wa)) return;
+        const signalId = wa.connect('notify::allocation', this._checkOverlap.bind(this));
         this.#trackedWindows.set(wa, signalId);
         wa.connect('destroy', this._removeWindowSignals.bind(this));
     }
@@ -188,8 +186,13 @@ export class Intellihide {
         }
     }
 
+    get targetRect() { return this.#targetBox.rect; }
+
+    /**
+     * @param {Number[]} rect
+     */
     set targetRect(rect) {
-        this.#targetBox.init_rect(...rect);
+        this.#targetBox.rect = rect;
         this._checkOverlap();
     }
 
@@ -198,7 +201,7 @@ export class Intellihide {
         this._doCheckOverlap();
     }
 
-    get overlapStatus() {
+    get overlaps() {
         return (this.#status == OverlapStatus.TRUE);
     }
 
@@ -208,7 +211,7 @@ export class Intellihide {
         /* Limit the number of calls to the doCheckOverlap function */
         if (this.#checkOverlapTimeoutId) {
             this.#checkOverlapTimeoutContinue = true;
-            return
+            return;
         }
 
         this._doCheckOverlap();
@@ -221,7 +224,7 @@ export class Intellihide {
                 return GLib.SOURCE_CONTINUE;
             } else {
                 this.#checkOverlapTimeoutId = 0;
-                return GLib.SOURCE_REMOVE;this.#isEnabled || (this.#targetBox == null)
+                return GLib.SOURCE_REMOVE;
             }
         });
     }
@@ -231,7 +234,7 @@ export class Intellihide {
         if (!this.enabled) return;
 
         let overlaps = OverlapStatus.FALSE;
-        let windows = global.get_window_actors();
+        let windows = global.get_window_actors().filter(wa => this._handledWindow(wa));
 
         /*
             * Get the top window on the monitor where the dock is placed.
@@ -241,36 +244,34 @@ export class Intellihide {
             */
 
         let topWindow = windows.findLast(
-            (win) => this._handledWindow(win) && (win.get_meta_window().get_monitor() == this.#monitorIndex)
-        );
+            (win) => {
+                const metaWin = win.get_meta_window();
+                return metaWin.get_monitor() === this.#monitorIndex;
+            })?.get_meta_window();
 
         if (topWindow) {
             this.#topApp = this.#tracker.get_window_app(topWindow);
             // If there isn't a focused app, use that of the window on top
             this.#focusApp = this.#tracker.focus_app || this.#topApp;
 
-            windows = windows.filter(this._intellihideFilterInteresting, this);
+            windows = windows.filter(win => this._intellihideFilterInteresting(win));
 
-            if (windows.some((win) => win.get_frame_rect().overlap(this.#targetBox.rect))) {
+            if (windows.some((win) => this.#targetBox.overlaps(win.get_meta_window().get_frame_rect()))) {
                 overlaps = OverlapStatus.TRUE;
             }
         }
 
         // Check if notification banner overlaps
-        if (Main.messageTray.visible) {
-            let rect = Main.messageTray._bannerBin.get_allocation_box();
-            let test = (rect.x1 < this.#targetBox.x2) &&
-                    (rect.x2 > this.#targetBox.x1) &&
-                    (rect.y1 < this.#targetBox.y2) &&
-                    (rect.y2 > this.#targetBox.y1);
-            if (test) overlaps = OverlapStatus.TRUE;
+        if (overlaps != OverlapStatus.TRUE && Main.messageTray.visible) {
+            if (this.#targetBox.overlaps(Main.messageTray._bannerBin.get_allocation_box())) {
+                overlaps = OverlapStatus.TRUE;
+            }
         }
 
         if (this.#status !== overlaps) {
             this.#status = overlaps;
             this.emit('status-changed', this.#status);
         }
-
     }
 
     // Filter interesting windows to be considered for intellihide.
@@ -278,15 +279,13 @@ export class Intellihide {
     // Optionally skip windows of other applications
     _intellihideFilterInteresting(wa) {
         let meta_win = wa.get_meta_window();
-        if (!this._handledWindow(wa))
-            return false;
+        if (!this._handledWindow(wa)) return false;
 
         let currentWorkspace = global.workspace_manager.get_active_workspace_index();
-        let wksp = meta_win.get_workspace();
-        let wksp_index = wksp.index();
+        let wksp_index = meta_win.get_workspace().index();
 
         // Depending on the intellihide mode, exclude non-relevent windows
-        if (this.#settings.get_boolean('enable-active-window')) {
+        if (this.#settings.enableActiveWindow) {
                 // Skip windows of other apps
                 if (this.#focusApp) {
                     // The DropDownTerminal extension is not an application per se
@@ -295,10 +294,10 @@ export class Intellihide {
                         return true;
 
                     let currentApp = this.#tracker.get_window_app(meta_win);
-                    let focusWindow = global.display.get_focus_window()
+                    let focusWindow = global.display.get_focus_window();
 
                     // Consider half maximized windows side by side
-                    // and windows which are alwayson top
+                    // and windows which are always on top
                     if((currentApp != this.#focusApp) && (currentApp != this.#topApp)
                         && !((focusWindow && focusWindow.maximized_vertically && !focusWindow.maximized_horizontally)
                               && (meta_win.maximized_vertically && !meta_win.maximized_horizontally)
@@ -308,11 +307,7 @@ export class Intellihide {
                 }
         }
 
-        if ( wksp_index == currentWorkspace && meta_win.showing_on_its_workspace() )
-            return true;
-        else
-            return false;
-
+        return ( wksp_index == currentWorkspace && meta_win.showing_on_its_workspace() );
     }
 
     // Filter windows by type
@@ -320,8 +315,7 @@ export class Intellihide {
     _handledWindow(wa) {
         let metaWindow = wa.get_meta_window();
 
-        if (!metaWindow)
-            return false;
+        if (!metaWindow) return false;
 
         const ignoreApps = [ "com.rastersoft.ding", "com.desktop.ding" ];
         const wmApp = metaWindow.get_gtk_application_id();
@@ -334,13 +328,13 @@ export class Intellihide {
             return true;
 
         let wtype = metaWindow.get_window_type();
-        for (let i = 0; i < handledWindowTypes.length; i++) {
-            var hwtype = handledWindowTypes[i];
+        for (const hwtype of handledWindowTypes) {
             if (hwtype == wtype)
                 return true;
             else if (hwtype > wtype)
                 return false;
         }
+
         return false;
     }
 };

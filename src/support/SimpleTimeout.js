@@ -25,7 +25,7 @@ export class SimpleTimeout {
         this.#bindTimeoutId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
             this.#timeout,
-            callback
+            this.#callback
         );
     }
 

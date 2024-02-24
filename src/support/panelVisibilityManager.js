@@ -23,7 +23,7 @@ import Shell from 'gi://Shell';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-import {DEBUG, GlobalSignalsHandler} from './convenience.js';
+import {DEBUG} from './convenience.js';
 import {Intellihide} from './intellihide.js';
 import {DesktopIconsUsableAreaClass} from './desktopIconsIntegration.js';
 import { PointerListener } from './PointerListener.js';
@@ -31,22 +31,43 @@ import { PressureBarrier } from './PressureBarrier.js';
 import { TopPanelManager } from './TopPanelManager.js';
 import { SimpleTimeout } from './SimpleTimeout.js';
 import { HotCornerManager } from './HotCornerManager.js';
+import { PanelVisibilitySettings } from './PanelVisibilitySettings.js';
 
 // const MessageTray = Main.messageTray;
 export const ShellActionMode = (Shell.ActionMode)?Shell.ActionMode:Shell.KeyBindingMode;
 const _searchEntryBin = Main.overview._overview._controls._searchEntryBin;
 
+const TriggerType = {
+    destroy: "destroy",
+    hidingOverview: "hiding-overview",
+    init: "init",
+    intellihide: "intellihide",
+    mouseEnter: "mouse-enter",
+    mouseLeft: "mouse-left",
+    showingOverview: "showing-overview",
+}
+
 export class PanelVisibilityManager {
+    #preventHide = false;
+    #settings = null;
+    #hotCorner = new HotCornerManager();
+    #topPanel = null;
+    pressureBarrier = null;
+    #desktopIconsUsableArea = null;
+    #intellihide = null;
+    #pointerListener = null;
+    #bindTimeout = null;
 
     constructor(settings, monitorIndex, uuid) {
-        this._settings = settings;
-        this._preventHide = false;
-        this._showInOverview = true;
-        this._hotCorner = new HotCornerManager();
-        this._topPanel = new TopPanelManager(this._hotCorner);
-        this._pressureBarrier = PressureBarrier(settings, this._topPanel);
-
-        this._desktopIconsUsableArea = new DesktopIconsUsableAreaClass(uuid);
+        this.#settings = new PanelVisibilitySettings(settings);
+        this.#topPanel = new TopPanelManager(this.#hotCorner);
+        this.pressureBarrier = new PressureBarrier(
+            this.#settings, 
+            this.#topPanel,
+            () => this.show(this.#settings.animationTimeAutohide,TriggerType.mouseEnter)
+        );
+        this.#desktopIconsUsableArea = new DesktopIconsUsableAreaClass(uuid);
+        this.#intellihide = new Intellihide(this.#settings, monitorIndex);
 
         // We lost the original notification's position because of PanelBox->affectsStruts = false
         // and now it appears beneath the top bar, fix it
@@ -57,51 +78,71 @@ export class PanelVisibilityManager {
         //     this._oldTween.apply(MessageTray, arguments);
         // }.bind(this);
 
-        this._pointerListener = new PointerListener(this._handlePointer.bind(this));
+        this.#pointerListener = new PointerListener((x,y) =>
+            !this._animationActive && !this.#intellihide.isPointerInsideBox([x, y]) && this._handleMenus()
+        );
 
         // Load settings
         this._bindSettingsChanges();
         this._updateSettingsMouseSensitive();
-        this._updateSettingsShowInOverview();
-        this._intellihide = new Intellihide(this._settings, monitorIndex);
-
-        this._updateHotCorner(false);
+        this._updateSearchEntryPadding();
         this._updateIntellihideBox();
-        this._bindTimeout = new SimpleTimeout(100, this._bindUIChanges.bind(this));
+        this.#bindTimeout = new SimpleTimeout(100, this._bindUIChanges.bind(this));
+    }
+
+    destroy() {
+        this.#bindTimeout.destroy();
+        this.#intellihide.destroy();
+        this.#settings.destroy();
+        Main.wm.removeKeybinding("shortcut-keybind");
+        this.#pointerListener.destroy();
+        this.pressureBarrier.destroy();
+
+        if (_searchEntryBin) {
+          _searchEntryBin.style = null;
+        }
+
+        // MessageTray._tween = this._oldTween;
+        this.show(0, TriggerType.destroy);
+
+        this.#topPanel.destroy();
+
+        this.#desktopIconsUsableArea.destroy();
+        this.#desktopIconsUsableArea = null;
     }
 
     hide(animationTime, trigger) {
         DEBUG("hide(" + trigger + ")");
-        if(this._preventHide) return;
+        if(this.#preventHide) return;
 
-        if(trigger == "mouse-left" && this._intellihide.isPointerInsideBox()) return;
+        if(trigger == TriggerType.mouseLeft && this.#intellihide.isPointerInsideBox()) return;
 
-        this._pointerListener.stop();
+        this.#pointerListener.stop();
 
-        this._topPanel.hide(animationTime, () => this._updateHotCorner(true));
+        this.#topPanel.hide(animationTime);
     }
 
     show(animationTime, trigger) {
         DEBUG("show(" + trigger + ")");
-        if(trigger == "mouse-enter"
-           && this._settings.get_boolean('mouse-triggers-overview')) {
+        if(trigger == TriggerType.mouseEnter
+           && this.#settings.mouseTriggersOverview) {
             Main.overview.show();
         }
 
-        this._updateHotCorner(false);
-        if(trigger == "destroy"
-           || (
-               trigger == "showing-overview"
-               && global.get_pointer()[1] < this._topPanel.panelBox.height
-               && this._settings.get_boolean('hot-corner')
-              )
+        if (
+            trigger == TriggerType.destroy
+            || (
+                trigger == TriggerType.showingOverview
+                && global.get_pointer()[1] < this.#topPanel.height
+                && this.#settings.hotCorner
+                )
           ) {
-            this._topPanel.reset();
+            this.#topPanel.reset();
         } else {
-            this._topPanel.show(animationTime, () => {
+            this.#topPanel.show(animationTime, () => {
                 this._updateIntellihideBox();
 
-                if(this._intellihide.isPointerOutsideBox())
+                if(this.#intellihide.isPointerOutsideBox())
                 {
                     // The cursor has already left the panel, so we can
                     // start hiding the panel immediately.
@@ -109,32 +150,26 @@ export class PanelVisibilityManager {
                 } else {
                     // The cursor is still on the panel. Start watching the
                     // pointer so we know when it leaves the panel.
-                    this._pointerListener.start();
+                    this.#pointerListener.start();
                 }
             })
-        }
-    }
-
-    _handlePointer(x, y) {
-        if(!this._animationActive && !this._intellihide.isPointerInsideBox([x, y])) {
-            this._handleMenus();
         }
     }
 
     _handleMenus() {
         if(!Main.overview.visible) {
             let blocker = Main.panel.menuManager.activeMenu;
-            if(blocker == null) {
+            if(!blocker) {
                 this.hide(
-                    this._settings.get_double('animation-time-autohide'),
-                    "mouse-left"
+                    this.#settings.animationTimeAutohide,
+                    TriggerType.mouseLeft
                 );
             } else {
                 this._blockerMenu = blocker;
                 this._menuEvent = this._blockerMenu.connect(
                     'open-state-changed',
                     (menu, open) => {
-                        if(!open && this._blockerMenu !== null) {
+                        if(!open && this._blockerMenu) {
                             this._blockerMenu.disconnect(this._menuEvent);
                             this._menuEvent=null;
                             this._blockerMenu=null;
@@ -148,80 +183,56 @@ export class PanelVisibilityManager {
 
     _updateIntellihideBox() {
         DEBUG("_updateIntellihideBox()");
-        this._intellihide.targetRect = this._topPanel.adjustedRect;
+        this.#intellihide.targetRect = this.#topPanel.adjustedRect;
 
-        this._desktopIconsUsableArea.resetMargins();
-        this._desktopIconsUsableArea.setMargins(-1, this._topPanel.height, 0, 0, 0);
+        this.#desktopIconsUsableArea.resetMargins();
+        this.#desktopIconsUsableArea.setMargins(-1, this.#topPanel.height, 0, 0, 0);
     }
 
-    _updateHotCorner(panel_hidden) {
-        DEBUG("_updateHotCorner(" + panel_hidden + ")");
-        let hotCorner = Main.layoutManager.hotCorner.find((hc) => hc != null);
-        if(hotCorner) {
-          if(!panel_hidden || this._settings.get_boolean('hot-corner')) {
-              hotCorner.setBarrierSize(this._topPanel.panelBox.height);
-          } else {
-              GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, function () {
-                  hotCorner.setBarrierSize(0)
-              });
-          }
-        }
-    }
-
-    // _updateSettingsHotCorner() {
-    //     this.hide(0.1, "hot-corner-setting-changed");
-    // }
-
-    _updateSettingsMouseSensitive(value) {
-        this._pressureBarrier.enabled = this._settings.get_boolean('mouse-sensitive');
-    }
-    
-    _updateSettingsShowInOverview() {
-        this._showInOverview = this._settings.get_boolean('show-in-overview');
-        this._updateSearchEntryPadding();
+    _updateSettingsMouseSensitive() {
+        this.pressureBarrier.enabled = this.#settings.mouseSensitive;
     }
 
     _updateSearchEntryPadding() {
         if (!_searchEntryBin) return;
         const scale = Main.layoutManager.primaryMonitor.geometry_scale;
-        const offset = this._topPanel.panelBox.height / scale; 
-        _searchEntryBin.set_style(this._showInOverview ? `padding-top: ${offset}px;` : null);
+        const offset = this.#topPanel.height / scale; 
+        _searchEntryBin.set_style(this.#settings.showInOverview ? `padding-top: ${offset}px;` : null);
     }
 
     _updateIntellihideStatus() {
-        if(this._settings.get_boolean('enable-intellihide')) {
-            this._preventHide = false;
-            this._intellihide.enable();
+        if(this.#settings.enableIntellihide) {
+            this.#preventHide = false;
+            this.#intellihide.enable();
         } else {
-            this._intellihide.disable();
-            this._preventHide = false;
-            this.hide(0, "init");
+            this.#intellihide.disable();
+            this.#preventHide = false;
+            this.hide(0, TriggerType.init);
         }
     }
 
     _updatePreventHide() {
-        if(!this._intellihide.isEnabled()) return;
+        if(!this.#intellihide.enabled) return;
 
-        this._preventHide = !this._intellihide.overlapStatus;
+        this.#preventHide = !this.#intellihide.overlaps;
 
-        let animTime = this._settings.get_double('animation-time-autohide');
-        if(this._preventHide) {
-            if (this._showInOverview || !Main.overview.visible)
-                this.show(animTime, "intellihide");
+        let animTime = this.#settings.animationTimeAutohide;
+        if(this.#preventHide) {
+            if (this.#settings.showInOverview || !Main.overview.visible)
+                this.show(animTime, TriggerType.intellihide);
         } else if(!Main.overview.visible)
-            this.hide(animTime, "intellihide");
+            this.hide(animTime, TriggerType.intellihide);
     }
 
     _bindUIChanges() {
-        this._signalsHandler = new GlobalSignalsHandler();
-        this._signalsHandler.add(
+        this.#settings.add(
             [
                 Main.overview,
                 'showing',
                 () => {
                     this.show(
-                        this._settings.get_double('animation-time-overview'),
-                        "showing-overview"
+                        this.#settings.animationTimeOverview,
+                        TriggerType.showingOverview
                     );
                 }
             ],
@@ -230,8 +241,8 @@ export class PanelVisibilityManager {
                 'hiding',
                 () => {
                     this.hide(
-                        this._settings.get_double('animation-time-overview'),
-                        "hiding-overview"
+                        this.#settings.animationTimeOverview,
+                        TriggerType.hidingOverview
                     );
                 }
             ],
@@ -241,7 +252,7 @@ export class PanelVisibilityManager {
                 this._handleMenus.bind(this)
             ],
             [
-                this._topPanel.panelBox,
+                this.#topPanel.panelBox,
                 'notify::anchor-y',
                 () => {
                     this._updateIntellihideBox();
@@ -249,7 +260,7 @@ export class PanelVisibilityManager {
                 }
             ],
             [
-                this._topPanel.panelBox,
+                this.#topPanel.panelBox,
                 'notify::height',
                 this._updateSearchEntryPadding.bind(this)
             ],
@@ -257,91 +268,62 @@ export class PanelVisibilityManager {
                 Main.layoutManager,
                 'monitors-changed',
                 () => {
-                    this._base_y = this._topPanel.panelBox.y;
+                    this._base_y = this.#topPanel.y;
                     this._updateIntellihideBox();
                     this._updateSettingsMouseSensitive();
                 }
             ],
             [
-                this._intellihide,
+                this.#intellihide,
                 'status-changed',
                 this._updatePreventHide.bind(this)
             ]
         );
 
-        if (!this._topPanel.panelBox.has_allocation()) {
+        if (!this.#topPanel.panelBox.has_allocation()) {
           // after login, allocating the panel can take a second or two
-          let tmp_handle = this._topPanel.panelBox.connect("notify::allocation", () => {
+          let tmp_handle = this.#topPanel.panelBox.connect("notify::allocation", () => {
             this._updateIntellihideStatus();
-            this._topPanel.panelBox.disconnect(tmp_handle);
+            this.#topPanel.panelBox.disconnect(tmp_handle);
           });
         } else {
           this._updateIntellihideStatus();
         }
 
-        this._bindTimeout.disable();
+        this.#bindTimeout.disable();
         return false;
     }
 
     _bindSettingsChanges() {
-        this._signalsHandler = new GlobalSignalsHandler();
-        this._signalsHandler.addWithLabel("settings",
+        this.#settings.bindSettings(
             [
-                this._settings,
                 'changed::hot-corner',
-                this._hotCorner.isAlwaysEnabled(this)
+                (value) => this.#hotCorner.isAlwaysEnabled = value
             ],
             [
-                this._settings,
                 'changed::mouse-sensitive',
                 this._updateSettingsMouseSensitive.bind(this)
             ],
             [
-                this._settings,
                 'changed::pressure-timeout',
                 this._updateSettingsMouseSensitive.bind(this)
             ],
             [
-                this._settings,
                 'changed::pressure-threshold',
                 this._updateSettingsMouseSensitive.bind(this)
             ],
             [ 
-                this._settings,
                 'changed::show-in-overview',
-                this._updateSettingsShowInOverview.bind(this)
+                this._updateSearchEntryPadding.bind(this)
             ],
             [
-                this._settings,
                 'changed::enable-intellihide',
                 this._updateIntellihideStatus.bind(this)
             ],
             [
-                this._settings,
                 'changed::enable-active-window',
                 this._updateIntellihideStatus.bind(this)
             ]
         );
-    }
-
-    destroy() {
-        this._bindTimeout.destroy();
-        this._intellihide.destroy();
-        this._signalsHandler.destroy();
-        Main.wm.removeKeybinding("shortcut-keybind");
-        this._pointerListener.destroy();
-        this._pressureBarrier.destroy();
-
-        if (_searchEntryBin) {
-          _searchEntryBin.style = null;
-        }
-
-        // MessageTray._tween = this._oldTween;
-        this.show(0, "destroy");
-
-        this._topPanel.destroy();
-
-        this._desktopIconsUsableArea.destroy();
-        this._desktopIconsUsableArea = null;
     }
 };

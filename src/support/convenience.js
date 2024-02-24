@@ -23,55 +23,19 @@ import Meta from 'gi://Meta';
 
 export function DEBUG(message) {
     // Enable for debugging purposes.
-    console.debug(Date().substring(16,24) + " [hidetopbar]: " + message);
+    console.debug(`[autohide_topbar]:  ${message}`);
 }
 
-// try to simplify global signals handling
-export class GlobalSignalsHandler {
-    constructor() {
-        this._signals = new Object();
-    }
+export function WARN(message) {
+    console.warn(`[autohide_topbar]:  ${message}`);
+}
 
-    add(/*unlimited 3-long array arguments*/){
-        this._addSignals('generic', arguments);
-    }
-
-    destroy() {
-        for( let label in this._signals )
-            this.disconnectWithLabel(label);
-    }
-
-    addWithLabel(label /* plus unlimited 3-long array arguments*/) {
-        // skip first element of thearguments array;
-        let elements = new Array;
-        for(let i = 1 ; i< arguments.length; i++)
-            elements.push(arguments[i]);
-        this._addSignals(label, elements);
-    }
-
-    _addSignals(label, elements) {
-        if(this._signals[label] == undefined)
-            this._signals[label] = new Array();
-        for( let i = 0; i < elements.length; i++ ) {
-            let object = elements[i][0];
-            let event = elements[i][1];
-            let id = object.connect(event, elements[i][2]);
-            this._signals[label].push( [ object , id ] );
-        }
-    }
-
-    disconnectWithLabel(label) {
-        if(this._signals[label]) {
-            for( let i = 0; i < this._signals[label].length; i++ ) {
-                this._signals[label][i][0].disconnect(this._signals[label][i][1]);
-            }
-            delete this._signals[label];
-        }
-    }
-};
+export function ERROR(message) {
+    console.error(`[autohide_topbar]:  ${message}`);
+}
 
 export function getMonitorManager() {
-    if (global.backend.get_monitor_manager !== undefined)
+    if (global.backend.get_monitor_manager)
         return global.backend.get_monitor_manager();
     else
         return Meta.MonitorManager.get();

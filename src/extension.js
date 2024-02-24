@@ -37,9 +37,6 @@ export default class HideTopBar_Extension extends Extension {
   disable() {
       DEBUG("disable()");
       this.pvManager.destroy();
-      this.pvManager = null;
-
       this.settings.disconnectObject(this);
-      this.settings = null;
   }
 }

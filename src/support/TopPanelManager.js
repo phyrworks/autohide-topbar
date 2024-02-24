@@ -1,18 +1,21 @@
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import { HotCornerManager } from './HotCornerManager';
+import { HotCornerManager } from './HotCornerManager.js';
 
 export class TopPanelManager {
     #animationActive = false;
     #hotCorner = null;
+    #base_y = 0;
 
     constructor(hotCornerManager) {
-        this.#hotCorner = hotCornerManager || new HotCornerManager();
+        this.#hotCorner = hotCornerManager || new HotCornerManager(this.panelBox.height);
+        this.#hotCorner.panelVisible = true;
         Main.layoutManager.removeChrome(this.panelBox);
         Main.layoutManager.addChrome(this.panelBox, {
             affectsStruts: false,
             trackFullscreen: true
         });
+        this.#base_y = this.panelBox.y;
     }
 
     destroy() {
@@ -23,8 +26,6 @@ export class TopPanelManager {
         });
     }
 
-
-    get #base_y() { return this.panelBox.y; }
     get panelBox() { return Main.layoutManager.panelBox; }
     get visible() { return this.panelBox.isVisible(); }
     set visible (value) {
@@ -33,7 +34,12 @@ export class TopPanelManager {
 
     // Geometry wrappers
     get adjustedRect() {
-        return [this.panelBox.x, this.panelBox.y-this.anchor.y, this.panelBox.width, this.panelBox.height];
+        return {
+            x: this.panelBox.x, 
+            y: this.panelBox.y-this.anchor.y, 
+            width: this.panelBox.width, 
+            height: this.panelBox.height
+        };
     }
     get anchor() {
         let [x, y] = this.panelBox.get_pivot_point();
@@ -61,7 +67,7 @@ export class TopPanelManager {
             onComplete: () => {
                 this.#animationActive = false;
                 this.panelBox.hide();
-                this.#hotCorner.visible = false;
+                this.panelBox.panelVisible = false;
                 completion || completion();
             }
         });
@@ -71,7 +77,7 @@ export class TopPanelManager {
     reset() {
         this.stop();
         this.panelBox.show();
-        this.#hotCorner.setVisible(true);
+        this.#hotCorner.panelVisible = true;
         this.panelBox.y = this.#base_y;
     }
 
@@ -79,13 +85,13 @@ export class TopPanelManager {
         this.stop();
         this.panelBox.show();
         this.#animationActive = true;
-        PanelBox.ease({
+        this.panelBox.ease({
             y: this.#base_y,
             duration: animationTime * 1000,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
                 this.#animationActive = false;
-                this.#hotCorner.isVisible = true;
+                this.#hotCorner.panelVisible = true;
                 completion || completion();
             }
         });
