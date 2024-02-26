@@ -20,7 +20,7 @@
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {PanelVisibilityManager} from './support/panelVisibilityManager.js';
-import {DEBUG} from './support/convenience.js';
+import {DEBUG, WARN} from './support/convenience.js';
 
 export default class HideTopBar_Extension extends Extension {
   constructor(metaData) {

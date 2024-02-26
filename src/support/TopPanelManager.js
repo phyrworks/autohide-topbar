@@ -35,10 +35,10 @@ export class TopPanelManager {
     // Geometry wrappers
     get adjustedRect() {
         return {
-            x: this.panelBox.x, 
-            y: this.panelBox.y-this.anchor.y, 
-            width: this.panelBox.width, 
-            height: this.panelBox.height
+            x: this.x, 
+            y: this.y-this.anchor.y, 
+            width: this.width, 
+            height: this.height
         };
     }
     get anchor() {
@@ -68,7 +68,7 @@ export class TopPanelManager {
                 this.#animationActive = false;
                 this.panelBox.hide();
                 this.panelBox.panelVisible = false;
-                completion || completion();
+                completion && completion();
             }
         });
     }
@@ -92,7 +92,7 @@ export class TopPanelManager {
             onComplete: () => {
                 this.#animationActive = false;
                 this.#hotCorner.panelVisible = true;
-                completion || completion();
+                completion && completion();
             }
         });
     }

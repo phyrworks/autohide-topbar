@@ -31,7 +31,7 @@ const Signals = imports.signals;
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-import {getMonitorManager} from './convenience.js';
+import {getMonitorManager, DEBUG} from './convenience.js';
 import { TargetBox } from './TargetBox.js';
 
 // A good compromise between reactivity and efficiency; to be tuned.
@@ -192,7 +192,10 @@ export class Intellihide {
      * @param {Number[]} rect
      */
     set targetRect(rect) {
+        DEBUG(`before: set targetRect() -- rect == {x: ${rect.x}, y: ${rect.y}, width: ${rect.width}, height: ${rect.height}}`);
         this.#targetBox.rect = rect;
+        DEBUG(`set targetRect(${this.#targetBox.toString()})`);
+
         this._checkOverlap();
     }
 
@@ -206,6 +209,7 @@ export class Intellihide {
     }
 
     _checkOverlap() {
+        DEBUG("_checkOverlap()");
         if (!this.enabled) return;
 
         /* Limit the number of calls to the doCheckOverlap function */
@@ -230,11 +234,12 @@ export class Intellihide {
     }
 
     _doCheckOverlap() {
-
+        DEBUG("_doCheckOverlap()");
         if (!this.enabled) return;
 
         let overlaps = OverlapStatus.FALSE;
         let windows = global.get_window_actors().filter(wa => this._handledWindow(wa));
+        DEBUG(`windows.length == ${windows.length}`);
 
         /*
             * Get the top window on the monitor where the dock is placed.
@@ -248,7 +253,7 @@ export class Intellihide {
                 const metaWin = win.get_meta_window();
                 return metaWin.get_monitor() === this.#monitorIndex;
             })?.get_meta_window();
-
+        DEBUG(`topWindow is ${topWindow ? "NOT null" : "null"}`);
         if (topWindow) {
             this.#topApp = this.#tracker.get_window_app(topWindow);
             // If there isn't a focused app, use that of the window on top
@@ -256,6 +261,7 @@ export class Intellihide {
 
             windows = windows.filter(win => this._intellihideFilterInteresting(win));
 
+            DEBUG(`#targetBox.rect == ${this.#targetBox.toString()}`);
             if (windows.some((win) => this.#targetBox.overlaps(win.get_meta_window().get_frame_rect()))) {
                 overlaps = OverlapStatus.TRUE;
             }

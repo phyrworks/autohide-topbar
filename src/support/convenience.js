@@ -23,7 +23,7 @@ import Meta from 'gi://Meta';
 
 export function DEBUG(message) {
     // Enable for debugging purposes.
-    console.debug(`[autohide_topbar]:  ${message}`);
+    print(`${Date().substring(16,24)} [autohide_topbar]:  ${message}`);
 }
 
 export function WARN(message) {

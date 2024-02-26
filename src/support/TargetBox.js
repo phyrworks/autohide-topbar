@@ -1,37 +1,44 @@
 import Clutter from 'gi://Clutter';
+import {DEBUG} from './convenience.js';
 
 export class TargetBox {
+    #box = null;
     constructor() {
-        this.box = new Clutter.ActorBox();
+        this.#box = new Clutter.ActorBox();
     }
 
     destroy() {
-        this.box.destroy();
     }
 
-    get x() { return this.box.x; }
-    get y() { return this.box.y; }
-    get width() { return this.box.width; }
-    get height() { return this.box.height; }
+    get x() { return this.#box.get_x(); }
+    get y() { return this.#box.get_y(); }
+    get width() { return this.#box.get_width(); }
+    get height() { return this.#box.get_height(); }
     get rect() {
         return { 
-            x: this.box.x,
-            y: this.box.y, 
-            width: this.box.width, 
-            height: this.box.height 
+            x: this.#box.get_x(),
+            y: this.#box.get_y(), 
+            width: this.#box.get_width(), 
+            height: this.#box.get_height() 
         };
     }
 
     set rect(value) {
-        this.box.init_rect(value.x, value.y, value.width, value.height);
+        DEBUG(`BEFORE: set TargetBox.rect({x: ${value.x}, y: ${value.y}, width: ${value.width}, height: ${value.height}})`);
+        this.#box.init_rect(value.x, value.y, value.width, value.height);
+        DEBUG(`AFTER: TargetBox.rect(${this.toString()})`);
     }
 
-    contains(x, y) { return this.box.contains(x, y); }
+    contains(x, y) { return this.#box.contains(x, y); }
     overlaps(rect) {
-        return (rect.x < this.box.x + this.box.width) &&
-            (rect.x + rect.width > this.box.x) &&
-            (rect.y < this.box.y + this.box.width) &&
-            (rect.y + rect.height > this.box.y);
+        return (rect.x < this.x + this.width) &&
+            (rect.x + rect.width > this.x) &&
+            (rect.y < this.y + this.height) &&
+            (rect.y + rect.height > this.y);
+    }
+
+    toString() {
+        return `{x: ${this.x}, y: ${this.y}, width: ${this.width}, height: ${this.height}}`;
     }
 
 }
