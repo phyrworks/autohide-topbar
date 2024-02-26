@@ -50,6 +50,10 @@ export class TopPanelManager {
     get height() { return this.panelBox.height; }
     get width() { return this.panelBox.width; }
 
+    contains(x, y) { 
+        return y < this.height;
+    }
+
     setAlwaysEnableHotCorner(enabled) {
         this.#hotCorner.isAlwaysEnabled = enabled;
     }

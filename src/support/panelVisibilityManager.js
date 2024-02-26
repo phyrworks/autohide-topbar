@@ -38,11 +38,9 @@ export const ShellActionMode = (Shell.ActionMode)?Shell.ActionMode:Shell.KeyBind
 const _searchEntryBin = Main.overview._overview._controls._searchEntryBin;
 
 const TriggerType = {
-    destroy: "destroy",
     hidingOverview: "hiding-overview",
     init: "init",
     intellihide: "intellihide",
-    mouseEnter: "mouse-enter",
     mouseLeft: "mouse-left",
     showingOverview: "showing-overview",
 }
@@ -64,7 +62,10 @@ export class PanelVisibilityManager {
         this.pressureBarrier = new PressureBarrier(
             this.#settings, 
             this.#topPanel,
-            () => this.show(this.#settings.animationTimeAutohide,TriggerType.mouseEnter)
+            () => {
+                DEBUG(`PressureBarrier callback - mouse triggered overview!`);
+                Main.overview.show();
+            }
         );
         this.#desktopIconsUsableArea = new DesktopIconsUsableAreaClass(uuid);
         this.#intellihide = new Intellihide(this.#settings, monitorIndex);
@@ -79,7 +80,7 @@ export class PanelVisibilityManager {
         // }.bind(this);
 
         this.#pointerListener = new PointerListener((x,y) =>
-            !this._animationActive && !this.#intellihide.isPointerInsideBox([x, y]) && this._handleMenus()
+            !this._animationActive && this.#intellihide.isPointerOutsideBox([x, y]) && this._handleMenus()
         );
 
         // Load settings
@@ -103,7 +104,7 @@ export class PanelVisibilityManager {
         }
 
         // MessageTray._tween = this._oldTween;
-        this.show(0, TriggerType.destroy);
+        this.#topPanel.reset();
 
         this.#topPanel.destroy();
 
@@ -112,10 +113,12 @@ export class PanelVisibilityManager {
     }
 
     hide(animationTime, trigger) {
-        DEBUG("hide(" + trigger + ")");
-        if(this.#preventHide) return;
+        DEBUG(`hide(${trigger}) - preventHide == ${this.#preventHide}`);
 
-        if(trigger == TriggerType.mouseLeft && this.#intellihide.isPointerInsideBox()) return;
+        if(this.#preventHide || 
+            // trigger == TriggerType.mouseLeft && 
+            this.#intellihide.isPointerInsideBox()
+        ) return;
 
         this.#pointerListener.stop();
 
@@ -123,22 +126,16 @@ export class PanelVisibilityManager {
     }
 
     show(animationTime, trigger) {
-        DEBUG("show(" + trigger + ")");
-        if(trigger == TriggerType.mouseEnter
-           && this.#settings.mouseTriggersOverview) {
-            Main.overview.show();
-        }
+        DEBUG(`show(${trigger})`);
 
-        if (
-            trigger == TriggerType.destroy
-            || (
-                trigger == TriggerType.showingOverview
-                && global.get_pointer()[1] < this.#topPanel.height
-                && this.#settings.hotCorner
-                )
-          ) {
+        if (trigger == TriggerType.showingOverview
+            && this.#topPanel.contains(...global.get_pointer())
+            && this.#settings.hotCorner
+        ) {
+            DEBUG(`show(${trigger}) - this.#topPanel.reset()`);
             this.#topPanel.reset();
         } else {
+            DEBUG(`show(${trigger}) - regular show`);
             this.#topPanel.show(animationTime, () => {
                 this._updateIntellihideBox();
 
@@ -194,6 +191,7 @@ export class PanelVisibilityManager {
     }
 
     _updateSearchEntryPadding() {
+        DEBUG(`_updateSearchEntryPadding() _searchEntryBin is ${_searchEntryBin ? `NOT NULL` : `NULL`}`)
         if (!_searchEntryBin) return;
         const scale = Main.layoutManager.primaryMonitor.geometry_scale;
         const offset = this.#topPanel.height / scale; 
@@ -212,6 +210,7 @@ export class PanelVisibilityManager {
     }
 
     _updatePreventHide() {
+        DEBUG(`_updatePreventHide()`);
         if(!this.#intellihide.enabled) return;
 
         this.#preventHide = !this.#intellihide.overlaps;
@@ -230,19 +229,22 @@ export class PanelVisibilityManager {
                 Main.overview,
                 'showing',
                 () => {
-                    this.show(
-                        this.#settings.animationTimeOverview,
-                        TriggerType.showingOverview
-                    );
+                    DEBUG(`Main.overview showing`);
+                    if (this.#settings.showInOverview) {
+                        this.#topPanel.reset();
+                    } else {
+                        this.hide(0, TriggerType.showingOverview);
+                    } 
                 }
             ],
             [
                 Main.overview,
                 'hiding',
                 () => {
+                    DEBUG(`Main.overview hiding`);
                     this.hide(
                         this.#settings.animationTimeOverview,
-                        TriggerType.hidingOverview
+                        TriggerType.hidingOverview                    
                     );
                 }
             ],

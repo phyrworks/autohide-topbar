@@ -167,7 +167,7 @@ export class Intellihide {
         return !this.isPointerInsideBox(point);
     }
 
-    _windowCreated(display, metaWindow) {
+    _windowCreated(_, metaWindow) {
         this._addWindowSignals(metaWindow.get_compositor_private());
         this._doCheckOverlap();
     }
@@ -192,9 +192,8 @@ export class Intellihide {
      * @param {Number[]} rect
      */
     set targetRect(rect) {
-        DEBUG(`before: set targetRect() -- rect == {x: ${rect.x}, y: ${rect.y}, width: ${rect.width}, height: ${rect.height}}`);
+        DEBUG(`before: set targetRect({x: ${rect.x}, y: ${rect.y}, width: ${rect.width}, height: ${rect.height}})`);
         this.#targetBox.rect = rect;
-        DEBUG(`set targetRect(${this.#targetBox.toString()})`);
 
         this._checkOverlap();
     }
@@ -239,7 +238,6 @@ export class Intellihide {
 
         let overlaps = OverlapStatus.FALSE;
         let windows = global.get_window_actors().filter(wa => this._handledWindow(wa));
-        DEBUG(`windows.length == ${windows.length}`);
 
         /*
             * Get the top window on the monitor where the dock is placed.
@@ -253,7 +251,6 @@ export class Intellihide {
                 const metaWin = win.get_meta_window();
                 return metaWin.get_monitor() === this.#monitorIndex;
             })?.get_meta_window();
-        DEBUG(`topWindow is ${topWindow ? "NOT null" : "null"}`);
         if (topWindow) {
             this.#topApp = this.#tracker.get_window_app(topWindow);
             // If there isn't a focused app, use that of the window on top
@@ -261,7 +258,6 @@ export class Intellihide {
 
             windows = windows.filter(win => this._intellihideFilterInteresting(win));
 
-            DEBUG(`#targetBox.rect == ${this.#targetBox.toString()}`);
             if (windows.some((win) => this.#targetBox.overlaps(win.get_meta_window().get_frame_rect()))) {
                 overlaps = OverlapStatus.TRUE;
             }
@@ -276,6 +272,7 @@ export class Intellihide {
 
         if (this.#status !== overlaps) {
             this.#status = overlaps;
+            DEBUG(`Intellihide.emit status-changed to ${this.#status.toString()}`);
             this.emit('status-changed', this.#status);
         }
     }

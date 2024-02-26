@@ -12,7 +12,7 @@ export class PointerListener {
     }
 
     get isListening() {
-        return this.#listener != null;
+        return !!this.#listener;
     }
 
     set isListening(value) {
@@ -26,11 +26,14 @@ export class PointerListener {
     }
 
     stop() {
-        this.#listener || this.#pointerWatcher._removeWatch(this.#listener);
+        this.#listener && this.#pointerWatcher._removeWatch(this.#listener);
         this.#listener = null;
     }
 
     destroy() {
         this.stop();
+        this.#pointerWatcher = null;
+        this.#listener = null;
+        this.#callback = null;
     }
 }
