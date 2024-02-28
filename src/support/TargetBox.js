@@ -24,9 +24,7 @@ export class TargetBox {
     }
 
     set rect(value) {
-        DEBUG(`BEFORE: set TargetBox.rect({x: ${value.x}, y: ${value.y}, width: ${value.width}, height: ${value.height}})`);
         this.#box.init_rect(value.x, value.y, value.width, value.height);
-        DEBUG(`AFTER: TargetBox.rect(${this.toString()})`);
     }
 
     contains(x, y) { return this.#box.contains(x, y); }
@@ -40,5 +38,4 @@ export class TargetBox {
     toString() {
         return `{x: ${this.x}, y: ${this.y}, width: ${this.width}, height: ${this.height}}`;
     }
-
 }

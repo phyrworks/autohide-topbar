@@ -137,7 +137,7 @@ export class Intellihide {
 
     enable() {
         this.#isEnabled = true;
-        this.#status = OverlapStatus.UNDEFINED;
+        this.status = OverlapStatus.UNDEFINED;
         for (let wa of global.get_window_actors()) {
             this._addWindowSignals(wa);
         }
@@ -146,6 +146,7 @@ export class Intellihide {
 
     disable() {
         this.#isEnabled = false;
+        this.status = OverlapStatus.FALSE;
 
         for (const wa of this.#trackedWindows.keys()) {
             this._removeWindowSignals(wa);
@@ -160,10 +161,15 @@ export class Intellihide {
 
     isPointerInsideBox(point) {
         const [x, y] = point || global.get_pointer();
+        DEBUG(`Intellihide.isPointerInsideBox({x: ${x}, y: ${y}})`);
+        DEBUG(`Intellihide.#targetbox == ${this.#targetBox.toString()}`);
+        let contains = this.#targetBox.contains(x,y);
+        DEBUG(`Intellihide.isPointerInsideBox - contains == ${contains}`);
         return this.#targetBox.contains(x, y);
     }
 
     isPointerOutsideBox(point) {
+        DEBUG(`Intellihide.isPointerOutsideBox(${point})`);
         return !this.isPointerInsideBox(point);
     }
 
@@ -192,19 +198,29 @@ export class Intellihide {
      * @param {Number[]} rect
      */
     set targetRect(rect) {
-        DEBUG(`before: set targetRect({x: ${rect.x}, y: ${rect.y}, width: ${rect.width}, height: ${rect.height}})`);
         this.#targetBox.rect = rect;
 
         this._checkOverlap();
     }
 
     forceUpdate() {
-        this.#status = OverlapStatus.UNDEFINED;
+        this.status = OverlapStatus.UNDEFINED;
         this._doCheckOverlap();
     }
 
+    get status() { 
+        return this.#status; 
+    }
+
+    set status(value) {
+        if (this.#status !== value) {
+            this.#status = value;
+            this.emit('status-changed', this.#status);
+        }
+    }
+
     get overlaps() {
-        return (this.#status == OverlapStatus.TRUE);
+        return this.enabled && this.status === OverlapStatus.TRUE;
     }
 
     _checkOverlap() {
@@ -269,12 +285,7 @@ export class Intellihide {
                 overlaps = OverlapStatus.TRUE;
             }
         }
-
-        if (this.#status !== overlaps) {
-            this.#status = overlaps;
-            DEBUG(`Intellihide.emit status-changed to ${this.#status.toString()}`);
-            this.emit('status-changed', this.#status);
-        }
+        this.status = overlaps;
     }
 
     // Filter interesting windows to be considered for intellihide.

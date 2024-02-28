@@ -1,14 +1,14 @@
 import Meta from 'gi://Meta';
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
 import { ShellActionMode } from './panelVisibilityManager.js';
+import { DEBUG } from './convenience.js';
 
-export class PressureBarrier {
+export class PanelPressureBarrier {
     panelPressure = null;
     panelBarrier = null;
+    #callback = null;
     #settings = null;
     #topPanel = null;
-    #callback = null;
 
     constructor(settings, topPanel, callback) {
         this.#settings = settings;
@@ -21,42 +21,46 @@ export class PressureBarrier {
         value ? this.enable() : this.disable();
     }
 
+    get callback() { return this.#callback; }
+    get threshold() { return this.#settings.pressureThreshold; }
+    get timeout() { return this.#settings.pressureTimeout; }
+
     enable() {
+        DEBUG(`PanelPressureBarrier.enable(): {threshold: ${this.threshold}, timeout: ${this.timeout}}`);
         this.disable();
         this.panelPressure = new Layout.PressureBarrier(
-            this.#settings.pressureThreshold,
-            this.#settings.pressureTimeout,
+            this.threshold, 
+            this.timeout, 
             ShellActionMode.NORMAL
         );
 
-        this.panelPressure.connect(
-            'trigger',
-            (barrier) => {
-                if (Main.layoutManager.primaryMonitor.inFullscreen
-                    && (!this.#settings.mouseSensitiveFullscreenWindow)) {
-                    return;
-                }
-                this.#callback && this.#callback();
-            }
-        );
-        let anchor_y = this.#topPanel.anchor.y, direction = Meta.BarrierDirection.POSITIVE_Y;
+        this.panelPressure.connect('trigger',this.#callback);
+
+        let anchor_y = this.#topPanel.anchor.y;
+        let direction = Meta.BarrierDirection.POSITIVE_Y;
         if (anchor_y < 0) {
-            anchor_y -= this.#topPanel.panelBox.height;
+            anchor_y -= this.#topPanel.height;
             direction = Meta.BarrierDirection.NEGATIVE_Y;
         }
+        let y = this.#topPanel.base_y - anchor_y;
+
+        DEBUG(`PanelPressureBarrier: {x1: ${this.#topPanel.x1}, x2: ${this.#topPanel.x2}, y1:${y}, y2:${y}, direction: ${direction}}`);
+
         this.panelBarrier = new Meta.Barrier({
             display: global.display,
-            x1: this.#topPanel.x,
-            x2: this.#topPanel.x + this.#topPanel.width,
-            y1: this._base_y - anchor_y,
-            y2: this._base_y - anchor_y,
+            x1: this.#topPanel.x1,
+            x2: this.#topPanel.x2,
+            y1: y,
+            y2: y,
             directions: direction
         });
+
         this.panelPressure.addBarrier(this.panelBarrier);
     }
 
     disable() {
         if (this.enabled) {
+            DEBUG(`PanelPressureBarrier.disable()`);
             this.panelPressure.removeBarrier(this.panelBarrier);
             this.panelBarrier.destroy();
             this.panelBarrier = null;

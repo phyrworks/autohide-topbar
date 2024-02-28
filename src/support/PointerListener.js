@@ -1,4 +1,5 @@
 import * as PointerWatcher from 'resource:///org/gnome/shell/ui/pointerWatcher.js';
+import { DEBUG } from './convenience.js';
 
 export class PointerListener {
     #callback = null;
@@ -20,12 +21,14 @@ export class PointerListener {
     }
 
     start() {
+        DEBUG(`PointerListener.start()`);
         if (!this.#listener) {
             this.#listener = this.#pointerWatcher.addWatch(10, this.#callback);
         }
     }
 
     stop() {
+        DEBUG(`PointerListener.stop()`);
         this.#listener && this.#pointerWatcher._removeWatch(this.#listener);
         this.#listener = null;
     }

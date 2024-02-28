@@ -26,8 +26,12 @@ export class TopPanelManager {
         });
     }
 
+    get base_y() { return this.#base_y; }
     get panelBox() { return Main.layoutManager.panelBox; }
-    get visible() { return this.panelBox.isVisible(); }
+    get visible() { 
+        print(`TopPanelManager.isVisible == ${this.panelBox.is_visible()}`);
+        return this.panelBox.is_visible(); 
+    }
     set visible (value) {
         value ? this.show() : this.hide();
     }
@@ -35,10 +39,10 @@ export class TopPanelManager {
     // Geometry wrappers
     get adjustedRect() {
         return {
-            x: this.x, 
-            y: this.y-this.anchor.y, 
-            width: this.width, 
-            height: this.height
+            x: this.x - 1, 
+            y: this.y-this.anchor.y - 1, 
+            width: this.width + 1, 
+            height: this.height + 1
         };
     }
     get anchor() {
@@ -49,8 +53,12 @@ export class TopPanelManager {
     get y() { return this.panelBox.y; }
     get height() { return this.panelBox.height; }
     get width() { return this.panelBox.width; }
+    get x1() { return this.panelBox.x; }
+    get x2() { return this.panelBox.x + this.panelBox.width; }
+    get y1() { return this.panelBox.y; }
+    get y2() { return this.panelBox.y + this.panelBox.height; }
 
-    contains(x, y) { 
+    contains(_, y) { 
         return y < this.height;
     }
 
