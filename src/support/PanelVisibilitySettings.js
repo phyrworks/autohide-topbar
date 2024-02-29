@@ -13,7 +13,6 @@ export class PanelVisibilitySettings extends GlobalSignalsHandler {
     get hotCorner() { return this.settings.get_boolean('hot-corner'); }
     get mouseSensitive() { return this.settings.get_boolean('mouse-sensitive'); }
     get mouseSensitiveFullscreenWindow() { return this.settings.get_boolean('mouse-sensitive-fullscreen-window') }
-    get mouseTriggersOverview() { return this.settings.get_boolean('mouse-triggers-overview'); }
     get pressureThreshold() { return this.settings.get_int('pressure-threshold'); }
     get pressureTimeout() { return this.settings.get_int('pressure-timeout'); }
     get showInOverview() { return this.settings.get_boolean('show-in-overview'); }

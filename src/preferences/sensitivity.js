@@ -11,7 +11,6 @@ export const Sensitivity = GObject.registerClass({
 		'mouse_sensitive_fullscreen_window',
 		'show_in_overview',
 		'hot_corner',
-		'mouse_triggers_overview',
 		'spin_pressure_threshold',
 		'spin_pressure_timeout'
 	],
@@ -39,11 +38,6 @@ export const Sensitivity = GObject.registerClass({
 		this.settings.bind(
 			'hot-corner',
 			this._hot_corner, 'active',
-			Gio.SettingsBindFlags.DEFAULT
-		);
-		this.settings.bind(
-			'mouse-triggers-overview',
-			this._mouse_triggers_overview, 'active',
 			Gio.SettingsBindFlags.DEFAULT
 		);
 		this.settings.bind(

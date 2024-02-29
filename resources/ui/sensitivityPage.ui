@@ -8,18 +8,6 @@
       <object class="AdwPreferencesGroup">
         <property name="title" translatable="yes">Sensitivity</property>
           <child>
-            <object class="AdwSwitchRow" id="mouse_sensitive">
-              <property name="title" translatable="yes">Show panel when mouse approaches edge of the screen</property>
-              <property name="tooltip-text" translatable="yes">When enabled, show panel not only in overview but also when the mouse approaches the edge of the screen</property>
-          </object>
-          </child>
-          <child>
-            <object class="AdwSwitchRow" id="mouse_sensitive_fullscreen_window">
-              <property name="title" translatable="yes">Show panel when fullscreen</property>
-              <property name="tooltip-text" translatable="yes">When enabled, also show panel when mouse approaches edge of the screen when windows are in fullscreen mode</property>
-            </object>
-          </child>  
-          <child>
             <object class= "AdwSwitchRow" id="show_in_overview">
               <property name="title" translatable="yes">Show panel in overview</property>
               <property name="tooltip-text" translatable="yes">When enabled, the panel will be visible in overview</property>
@@ -32,11 +20,17 @@
             </object>
           </child>
           <child>
-            <object class="AdwSwitchRow" id="mouse_triggers_overview">
-              <property name="title" translatable="yes">Show overview when mouse approaches edge of the screen</property>
-              <property name="tooltip-text" translatable="yes">When enabled, the panel and overview are both shown when the mouse approaches the edge of the screen</property>
-            </object>
+            <object class="AdwSwitchRow" id="mouse_sensitive">
+              <property name="title" translatable="yes">Show panel when mouse approaches edge of the screen</property>
+              <property name="tooltip-text" translatable="yes">When enabled, show panel not only in overview but also when the mouse approaches the edge of the screen</property>
+          </object>
           </child>
+          <child>
+            <object class="AdwSwitchRow" id="mouse_sensitive_fullscreen_window">
+              <property name="title" translatable="yes">Show panel when fullscreen</property>
+              <property name="tooltip-text" translatable="yes">When enabled, also show panel when mouse approaches edge of the screen when windows are in fullscreen mode</property>
+            </object>
+          </child>  
           <child>
             <object class="AdwSpinRow" id="spin_pressure_threshold">
               <property name="title" translatable="yes">Pressure barrier's threshold:</property>
