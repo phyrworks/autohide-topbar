@@ -203,14 +203,6 @@ export class PanelVisibilityManager {
         _searchEntryBin.set_style(this.#settings.showInOverview ? `padding-top: ${offset}px;` : null);
     }
 
-    _updateIntellihideStatus() {
-        if(this.#settings.enableIntellihide) {
-            this.#intellihide.enable();
-        } else {
-            this.#intellihide.disable();
-        }
-    }
-
     _autohideStatusChanged() {
         DEBUG(`_autohideStatusChanged()`);
         if (this.#intellihide.overlaps) {
@@ -281,11 +273,11 @@ export class PanelVisibilityManager {
         if (!this.#topPanel.panelBox.has_allocation()) {
           // after login, allocating the panel can take a second or two
           let tmp_handle = this.#topPanel.panelBox.connect("notify::allocation", () => {
-            this._updateIntellihideStatus();
+            this.#intellihide.enable();
             this.#topPanel.panelBox.disconnect(tmp_handle);
           });
         } else {
-          this._updateIntellihideStatus();
+            this.#intellihide.enable();
         }
 
         this.#bindTimeout.disable();
@@ -314,14 +306,11 @@ export class PanelVisibilityManager {
                 'changed::show-in-overview',
                 this._updateSearchEntryPadding.bind(this)
             ],
-            [
-                'changed::enable-intellihide',
-                this._updateIntellihideStatus.bind(this)
-            ],
-            [
-                'changed::enable-active-window',
-                this._updateIntellihideStatus.bind(this)
-            ]
+            /***** CHECK HERE ******/
+            // [
+            //     'changed::enable-active-window',
+            //     this._updateIntellihideStatus.bind(this)
+            // ]
         );
     }
 };

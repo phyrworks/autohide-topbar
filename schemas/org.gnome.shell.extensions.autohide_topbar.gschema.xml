@@ -65,13 +65,6 @@
         Pressing the shortcut again rehides the panel.
       </description>
     </key>
-    <key name="enable-intellihide" type="b">
-      <default>true</default>
-      <summary>Enable intellihide feature</summary>
-      <description>
-        When enabled, the panel will only hide if a window takes the space.
-      </description>
-    </key>
     <key name="enable-active-window" type="b">
       <default>true</default>
       <summary>Enable Intellihide only for active window</summary>
