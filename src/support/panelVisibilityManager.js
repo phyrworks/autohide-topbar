@@ -237,7 +237,7 @@ export class PanelVisibilityManager {
                 Main.overview,
                 'hiding',
                 () => {
-                    if (this.#intellihide.overlaps) {
+                    if (this.#intellihide.overlaps && this.#intellihide.isPointerOutsideBox()) {
                         this.hide(TriggerType.hidingOverview);
                     } else {
                         this.show(TriggerType.hidingOverview);
