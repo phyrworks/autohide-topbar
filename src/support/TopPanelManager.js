@@ -7,7 +7,7 @@ export class TopPanelManager {
     #hotCorner = null;
     #base_y = 0;
 
-    constructor(hotCornerManager) {
+    constructor(hotCornerManager, allocationCallback) {
         this.#hotCorner = hotCornerManager || new HotCornerManager(this.panelBox.height);
         this.#hotCorner.panelVisible = true;
         Main.layoutManager.removeChrome(this.panelBox);
@@ -16,6 +16,16 @@ export class TopPanelManager {
             trackFullscreen: true
         });
         this.#base_y = this.panelBox.y;
+
+        if (!this.panelBox.has_allocation()) {
+            // after login, allocating the panel can take a second or two
+            let tmp_handle = this.panelBox.connect("notify::allocation", () => {
+                allocationCallback && allocationCallback(this);
+                this.panelBox.disconnect(tmp_handle);
+              });
+        } else {
+            allocationCallback && allocationCallback(this);
+        }
     }
 
     destroy() {

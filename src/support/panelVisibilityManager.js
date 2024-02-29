@@ -58,7 +58,6 @@ export class PanelVisibilityManager {
 
     constructor(settings, monitorIndex, uuid) {
         this.#settings = new PanelVisibilitySettings(settings);
-        this.#topPanel = new TopPanelManager(this.#hotCorner);
         this.pressureBarrier = new PanelPressureBarrier(
             this.#settings, 
             this.#topPanel,
@@ -68,6 +67,11 @@ export class PanelVisibilityManager {
 
         this.#desktopIconsUsableArea = new DesktopIconsUsableAreaClass(uuid);
         this.#intellihide = new Intellihide(this.#settings, monitorIndex);
+        this.#topPanel = new TopPanelManager(this.#hotCorner, () => {
+            this._bindUIChanges();
+            this.#intellihide.enable();
+        });
+
 
         // We lost the original notification's position because of PanelBox->affectsStruts = false
         // and now it appears beneath the top bar, fix it
@@ -91,7 +95,6 @@ export class PanelVisibilityManager {
         this._updateSettingsMouseSensitive();
         this._updateSearchEntryPadding();
         this._updateIntellihideBox();
-        this.#bindTimeout = new SimpleTimeout(100, this._bindUIChanges.bind(this));
     }
 
     destroy() {
@@ -270,17 +273,6 @@ export class PanelVisibilityManager {
             ]
         );
 
-        if (!this.#topPanel.panelBox.has_allocation()) {
-          // after login, allocating the panel can take a second or two
-          let tmp_handle = this.#topPanel.panelBox.connect("notify::allocation", () => {
-            this.#intellihide.enable();
-            this.#topPanel.panelBox.disconnect(tmp_handle);
-          });
-        } else {
-            this.#intellihide.enable();
-        }
-
-        this.#bindTimeout.disable();
         return false;
     }
 
