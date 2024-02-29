@@ -23,13 +23,6 @@
         Set to "true" to also show panel when mouse approaches edge of the screen when windows are in fullscreen mode.
       </description>
     </key>
-    <key name="animation-time-overview" type="d">
-      <default>0.4</default>
-      <summary>Slide animation time when entering/leaving overview:</summary>
-      <description>
-        Amount of time it takes to slide the panel in/out when entering/leaving overview.
-      </description>
-    </key>
     <key name="animation-time-autohide" type="d">
       <default>0.2</default>
       <summary>Slide animation time when mouse approaches edge of the screen:</summary>

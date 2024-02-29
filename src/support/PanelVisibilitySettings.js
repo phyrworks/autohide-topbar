@@ -7,7 +7,6 @@ export class PanelVisibilitySettings extends GlobalSignalsHandler {
     }
 
     get animationTimeAutohide() { return this.settings.get_double('animation-time-autohide'); }
-    get animationTimeOverview() { return this.settings.get_double('animation-time-overview'); }
     get enableActiveWindow() { return this.settings.get_boolean('enable-active-window') }
     get enableIntellihide() { return this.settings.get_boolean('enable-intellihide'); }
     get hotCorner() { return this.settings.get_boolean('hot-corner'); }
