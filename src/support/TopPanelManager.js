@@ -42,7 +42,7 @@ export class TopPanelManager {
         print(`TopPanelManager.isVisible == ${this.panelBox.is_visible()}`);
         return this.panelBox.is_visible(); 
     }
-    set visible (value) {
+    set visible(value) {
         value ? this.show() : this.hide();
     }
 
@@ -70,10 +70,6 @@ export class TopPanelManager {
 
     contains(_, y) { 
         return y < this.height;
-    }
-
-    setAlwaysEnableHotCorner(enabled) {
-        this.#hotCorner.isAlwaysEnabled = enabled;
     }
 
     hide(animationTime, completion) {

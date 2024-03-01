@@ -20,19 +20,10 @@
 // const Gtk = imports.gi.Gtk;
 // const GObject = imports.gi.GObject;
 
-import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk?version=4.0';
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
-import { Animation } from './preferences/animation.js';
-import { Intellihide } from './preferences/intellihide.js';
-import { Sensitivity } from './preferences/sensitivity.js';
-
-// const Gettext = imports.gettext.domain('hidetopbar');
-// const _ = Gettext.gettext;
-
-// const ExtensionUtils = imports.misc.extensionUtils;
-// const Me = ExtensionUtils.getCurrentExtension();
+import { AutohidePrefs } from './support/AutohidePrefs.js';
 
 export default class HideTopBarPreferences extends ExtensionPreferences {
     constructor(metadata) {
@@ -47,8 +38,6 @@ export default class HideTopBarPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const preferences = this.getSettings();
 
-        window.add(new Sensitivity(preferences));
-        window.add(new Animation(preferences));
-        window.add(new Intellihide(preferences));
+        window.add(new AutohidePrefs(preferences));
     }
 }

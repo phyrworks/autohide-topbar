@@ -3,7 +3,7 @@
   <schema id="org.gnome.shell.extensions.autohide_topbar" path="/org/gnome/shell/extensions/autohide_topbar/">
     <key name="hot-corner" type="b">
       <default>false</default>
-      <summary>Keep hot corner sensitive or not</summary>
+      <summary>Keep hot corner sensitive when panel is hidden</summary>
       <description>
         Set to "true" to keep hot corner sensitive even when panel is in hidden
         state. Set to "false" to get rid of the hot corner in hidden state.
@@ -18,56 +18,35 @@
     </key>
     <key name="mouse-sensitive-fullscreen-window" type="b">
       <default>true</default>
-      <summary>Also show panel when mouse approaches edge of the screen when fullscreen.</summary>
+      <summary>Also show panel when mouse approaches edge of the screen when fullscreen</summary>
       <description>
         Set to "true" to also show panel when mouse approaches edge of the screen when windows are in fullscreen mode.
       </description>
     </key>
     <key name="animation-time-autohide" type="d">
       <default>0.2</default>
-      <summary>Slide animation time when mouse approaches edge of the screen:</summary>
+      <summary>Slide animation time when mouse approaches edge of the screen</summary>
       <description>
         Amount of time it takes to slide the panel in/out when the mouse approaches the edge of the screen.
       </description>
     </key>
     <key name="pressure-threshold" type="i">
       <default>100</default>
-      <summary>Pressure barrier's threshold</summary>
+      <summary>Pressure barrier threshold</summary>
       <description>
         Number of pixels the mouse has to overrun in order to trigger the pressure barrier.
       </description>
     </key>
     <key name="pressure-timeout" type="i">
       <default>1000</default>
-      <summary>Pressure barrier's timeout</summary>
+      <summary>Pressure barrier timeout</summary>
       <description>
         Amount of time before pressure barrier is triggered.
       </description>
     </key>
-    <key name="shortcut-keybind" type="as">
-      <default>[]</default>
-      <summary>"show bar" shortcut</summary>
-      <description>
-        Keyboard shortcut that triggers the bar to be shown.
-      </description>
-    </key>
-    <key name="shortcut-delay" type="d">
-      <default>1.0</default>
-      <summary>Delay after key press</summary>
-      <description>
-        Delay before bar rehides automatically after key press. The value 0.0 means unlimited delay.
-      </description>
-    </key>
-    <key name="shortcut-toggles" type="b">
-      <default>true</default>
-      <summary>Enable toggling behaviour</summary>
-      <description>
-        Pressing the shortcut again rehides the panel.
-      </description>
-    </key>
     <key name="enable-active-window" type="b">
       <default>true</default>
-      <summary>Enable Intellihide only for active window</summary>
+      <summary>Enable Autohide only for active window</summary>
       <description>
         When enabled, the panel will only hide if the active window takes the space.
       </description>
