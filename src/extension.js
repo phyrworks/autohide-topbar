@@ -20,6 +20,8 @@
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {PanelVisibilityManager} from './support/panelVisibilityManager.js';
+import { Settings } from './conveniences/settings.js';
+import { Keys } from './conveniences/keys.js';
 import {DEBUG} from './support/convenience.js';
 
 export default class HideTopBar_Extension extends Extension {
@@ -29,15 +31,15 @@ export default class HideTopBar_Extension extends Extension {
 
   enable() {
       DEBUG("enable()");
-      this.settings = this.getSettings();
+      this.preferences = new Settings(Keys, this.getSettings());
       this.monitorIndex = Main.layoutManager.primaryIndex;
-      this.pvManager = new PanelVisibilityManager(this.settings, this.monitorIndex, this.uuid);
+      this.pvManager = new PanelVisibilityManager(this.preferences, this.monitorIndex, this.uuid);
   }
 
   disable() {
       DEBUG("disable()");
       this.pvManager.destroy();
-      this.settings.disconnectObject(this);
+      this.preferences.disconnectObject(this);
   }
 
   destroy() {

@@ -23,6 +23,9 @@
 import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk?version=4.0';
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { Settings } from './conveniences/settings.js';
+import { Keys } from './conveniences/keys.js';
+
 import { AutohidePrefs } from './support/AutohidePrefs.js';
 
 export default class HideTopBarPreferences extends ExtensionPreferences {
@@ -36,7 +39,8 @@ export default class HideTopBarPreferences extends ExtensionPreferences {
     }
 
     fillPreferencesWindow(window) {
-        const preferences = this.getSettings();
+        const preferences = new Settings(Keys, this.getSettings());
+        
 
         window.add(new AutohidePrefs(preferences));
     }
