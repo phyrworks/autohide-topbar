@@ -85,7 +85,7 @@ export const Connections = class Connections {
         this.buffer.forEach((connection) => {
             // disconnect
             try {
-                connection.actor.disconnect(connection.id);
+                connection.id > 0 && connection.actor.disconnect(connection.id);
             } catch (e) {
                 this._warn(`error removing connection: ${e}; continuing`);
             }

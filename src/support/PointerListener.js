@@ -1,5 +1,5 @@
 import * as PointerWatcher from 'resource:///org/gnome/shell/ui/pointerWatcher.js';
-import { DEBUG } from './convenience.js';
+import { DEBUG } from './logging.js';
 
 export class PointerListener {
     #callback = null;

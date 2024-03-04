@@ -1,5 +1,4 @@
 import Clutter from 'gi://Clutter';
-import {DEBUG} from './convenience.js';
 
 export class TargetBox {
     #box = null;

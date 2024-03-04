@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: autohide-topbar@phyrworks.github.com\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-14 15:55-0800\n"
+"POT-Creation-Date: 2024-03-04 08:46-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,80 +17,106 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: sensitivity.ui:6 sensitivity.ui:9
-msgid "Sensitivity"
+#: AutohidePrefs.ui:5
+msgid "Autohide"
 msgstr ""
 
-#: sensitivity.ui:12
-msgid "Show panel when mouse approaches edge of the screen"
+#: AutohidePrefs.ui:10
+msgid "General Autohide Preferences"
 msgstr ""
 
-#: sensitivity.ui:13
+#: AutohidePrefs.ui:11
 msgid ""
-"When enabled, show panel not only in overview but also when the mouse "
-"approaches the edge of the screen"
+"General preferences that affect the hide and show behavior of the top panel"
 msgstr ""
 
-#: sensitivity.ui:18
-msgid "Show panel when fullscreen"
+#: AutohidePrefs.ui:14
+msgid "Enable Autohide only for active window"
 msgstr ""
 
-#: sensitivity.ui:19
+#: AutohidePrefs.ui:15
 msgid ""
-"When enabled, also show panel when mouse approaches edge of the screen when "
-"windows are in fullscreen mode"
+"When enabled, the top panel will only hide if the active window takes the "
+"space."
 msgstr ""
 
-#: sensitivity.ui:24
-msgid "Show panel in overview"
+#: AutohidePrefs.ui:20
+msgid "Show top panel in overview"
 msgstr ""
 
-#: sensitivity.ui:25
-msgid "When enabled, the panel will be visible in overview"
+#: AutohidePrefs.ui:21
+msgid "When enabled, the panel will be visible in overview."
 msgstr ""
 
-#: sensitivity.ui:30
-msgid "Keep hot corner sensitive, even in hidden state"
+#: AutohidePrefs.ui:26
+msgid "Keep hot corner sensitive when top panel is hidden"
 msgstr ""
 
-#: sensitivity.ui:31
+#: AutohidePrefs.ui:27
+msgid "When enabled, keeps the hot corner sensitive when panel is in hidden."
+msgstr ""
+
+#: AutohidePrefs.ui:35
+msgid "Mouse Behavior Preferences"
+msgstr ""
+
+#: AutohidePrefs.ui:36
+msgid "Preferences for when the mouse enters the top panel when it is hidden"
+msgstr ""
+
+#: AutohidePrefs.ui:39
+msgid "Mouse sensitive"
+msgstr ""
+
+#: AutohidePrefs.ui:40
+msgid "Show the top panel when mouse approaches edge of the screen"
+msgstr ""
+
+#: AutohidePrefs.ui:41
 msgid ""
-"When enabled, keeps the hot corner sensitive even when panel is in hidden"
+"When enabled, show the top panel not only in overview but also when the "
+"mouse approaches the edge of the screen."
 msgstr ""
 
-#: sensitivity.ui:36
-msgid "Show overview when mouse approaches edge of the screen"
+#: AutohidePrefs.ui:45
+msgid "Mouse sensitive when fullscreen"
 msgstr ""
 
-#: sensitivity.ui:37
+#: AutohidePrefs.ui:46
 msgid ""
-"When enabled, the panel and overview are both shown when the mouse "
-"approaches the edge of the screen"
+"When enabled, show the top panel when mouse approaches edge when fullscreen."
 msgstr ""
 
-#: sensitivity.ui:42
-msgid "Keep round corners when top bar is hidden"
+#: AutohidePrefs.ui:51
+msgid "Mouse sensitive threshold (px):"
 msgstr ""
 
-#: sensitivity.ui:43
-msgid ""
-"When enabled, keep the round corners on the top even when the panel is hidden"
-msgstr ""
-
-#: sensitivity.ui:48
-msgid "Pressure barrier's threshold:"
-msgstr ""
-
-#: sensitivity.ui:49
+#: AutohidePrefs.ui:52
 msgid ""
 "Number of pixels the mouse has to overrun in order to trigger the pressure "
-"barrier"
+"barrier."
 msgstr ""
 
-#: sensitivity.ui:63
-msgid "Pressure barrier's timeout:"
+#: AutohidePrefs.ui:66
+msgid "Mouse sensitive timeout (ms):"
 msgstr ""
 
-#: sensitivity.ui:64
-msgid "Amount of time in milliseconds before pressure barrier is triggered"
+#: AutohidePrefs.ui:67
+msgid "Amount of time in milliseconds before pressure barrier is triggered."
+msgstr ""
+
+#: AutohidePrefs.ui:86
+msgid "Autohide Animation Preferences"
+msgstr ""
+
+#: AutohidePrefs.ui:87
+msgid "Settings for the slide animation when hiding or showing the top panel."
+msgstr ""
+
+#: AutohidePrefs.ui:90
+msgid "Slide animation time (secs):"
+msgstr ""
+
+#: AutohidePrefs.ui:91
+msgid "Amount of time it takes to slide the top panel in/out."
 msgstr ""

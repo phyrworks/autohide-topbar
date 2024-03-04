@@ -8,13 +8,9 @@ export class TopPanelManager {
     #base_y = 0;
 
     constructor(hotCornerManager, allocationCallback) {
-        this.#hotCorner = hotCornerManager || new HotCornerManager(this.panelBox.height);
+        this.#hotCorner = hotCornerManager ?? new HotCornerManager(this.panelBox.height);
         this.#hotCorner.panelVisible = true;
-        Main.layoutManager.removeChrome(this.panelBox);
-        Main.layoutManager.addChrome(this.panelBox, {
-            affectsStruts: false,
-            trackFullscreen: true
-        });
+        this._resetChrome(false);
         this.#base_y = this.panelBox.y;
 
         if (!this.panelBox.has_allocation()) {
@@ -29,9 +25,13 @@ export class TopPanelManager {
     }
 
     destroy() {
+        this._resetChrome(true);
+    }
+
+    _resetChrome(affectsStruts) {
         Main.layoutManager.removeChrome(this.panelBox);
         Main.layoutManager.addChrome(this.panelBox, {
-            affectsStruts: true,
+            affectsStruts: affectsStruts,
             trackFullscreen: true
         });
     }
@@ -39,7 +39,6 @@ export class TopPanelManager {
     get base_y() { return this.#base_y; }
     get panelBox() { return Main.layoutManager.panelBox; }
     get visible() { 
-        print(`TopPanelManager.isVisible == ${this.panelBox.is_visible()}`);
         return this.panelBox.is_visible(); 
     }
     set visible(value) {

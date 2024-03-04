@@ -1,41 +1,20 @@
-/**
- * This file is part of Hide Top Bar
- *
- * Copyright 2020 Thomas Vogt
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-import GLib from 'gi://GLib';
-import Meta from 'gi://Meta';
-import Shell from 'gi://Shell';
+// Note that the code in this file is taken from the HideTopBar Gnome Shell
+// extension (https://gitlab.gnome.org/tuxor1337/hidetopbar) 
+// but with significant modification. 
+// HideTopbar is distributed under the terms of the GNU
+// General Public License, version 3 or later.
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-
-import {DEBUG} from './convenience.js';
+import {Connections} from '../conveniences/connections.js';
+import {DEBUG} from './logging.js';
 import {Intellihide} from './intellihide.js';
 import {DesktopIconsUsableAreaClass} from './desktopIconsIntegration.js';
 import { PointerListener } from './PointerListener.js';
 import { PanelPressureBarrier } from './PanelPressureBarrier.js';
 import { TopPanelManager } from './TopPanelManager.js';
-import { SimpleTimeout } from './SimpleTimeout.js';
 import { HotCornerManager } from './HotCornerManager.js';
-import { PanelVisibilitySettings } from './PanelVisibilitySettings.js';
 
 // const MessageTray = Main.messageTray;
-export const ShellActionMode = (Shell.ActionMode)?Shell.ActionMode:Shell.KeyBindingMode;
-const _searchEntryBin = Main.overview._overview._controls._searchEntryBin;
 
 const TriggerType = {
     hidingOverview: "hiding-overview",
@@ -54,19 +33,17 @@ export class PanelVisibilityManager {
     #desktopIconsUsableArea = null;
     #intellihide = null;
     #pointerListener = null;
-    #bindTimeout = null;
+    #connection = new Connections();
+    #mouseSensitive = true;
+    #pressureThreshold = 100;
+    #pressureTimeout = 1000;
 
-    constructor(preferences, monitorIndex, uuid) {
-        this.#preferences = new PanelVisibilitySettings(preferences);
-        this.pressureBarrier = new PanelPressureBarrier(
-            this.#preferences, 
-            this.#topPanel,
-            (_) => this.autoShowEnabled && 
-                    this.show(TriggerType.mouseSensitive)
-        );
+    constructor(preferences, uuid) {
+        this.#preferences = preferences;
 
         this.#desktopIconsUsableArea = new DesktopIconsUsableAreaClass(uuid);
-        this.#intellihide = new Intellihide(this.#preferences, monitorIndex);
+        this.#intellihide = new Intellihide(this.#preferences, Main.layoutManager.primaryIndex);
+
         this.#topPanel = new TopPanelManager(this.#hotCorner, () => {
             this._bindUIChanges();
             this.#intellihide.enable();
@@ -86,35 +63,35 @@ export class PanelVisibilityManager {
             !this._animationActive && this.#intellihide.isPointerOutsideBox([x, y]) && this._handleMenus()
         );
 
-        this.#panelPressureBarrier = new PanelPressureBarrier(this.#preferences, this.#topPanel, () => 
-            this.autoShowEnabled && this.show(TriggerType.mouseSensitive)
+        this.#panelPressureBarrier = new PanelPressureBarrier(
+            this.#preferences, this.#topPanel, 
+            () => this.autoShowEnabled && !this.#topPanel.visible && this.show(TriggerType.mouseSensitive)
         );
 
         // Load settings
         this._bindSettingsChanges();
-        this._updateSettingsMouseSensitive();
+        this.#pressureThreshold = this.#preferences.pointer.PRESSURE_THRESHOLD;
+        this.#pressureTimeout = this.#preferences.pointer.PRESSURE_TIMEOUT;
+        this.mouseSensitive = this.#preferences.pointer.MOUSE_SENSITIVE;
         this._updateSearchEntryPadding();
         this._updateIntellihideBox();
     }
 
     destroy() {
         DEBUG(`PanelVisibilityManager.destroy()`);
-        this.#bindTimeout.destroy();
+        this.#connection.disconnect_all();
         this.#intellihide.destroy();
-        this.#preferences.destroy();
-        Main.wm.removeKeybinding("shortcut-keybind");
+        this.#preferences.disconnect_all_settings();
         this.#pointerListener.destroy();
         this.#panelPressureBarrier.destroy();
 
-        if (_searchEntryBin) {
-          _searchEntryBin.style = null;
+        if (this._searchEntryBin) {
+          this._searchEntryBin.style = null;
         }
 
         // MessageTray._tween = this._oldTween;
         this.#topPanel.reset();
-
         this.#topPanel.destroy();
-
         this.#desktopIconsUsableArea.destroy();
         this.#desktopIconsUsableArea = null;
     }
@@ -122,7 +99,35 @@ export class PanelVisibilityManager {
     get autoShowEnabled() { 
         DEBUG(`PanelVisibilityManger.autoShowEnabled()`);
         let fullscreen = Main.layoutManager.primaryMonitor.inFullscreen;
-        return !fullscreen && this.#preferences.mouseSensitive || (fullscreen && this.#preferences.mouseSensitiveFullscreenWindow); 
+        return !fullscreen && this.mouseSensitive || (fullscreen && this.#preferences.pointer.MOUSE_SENSITIVE_FULLSCREEN_WINDOW); 
+    }
+
+    get _searchEntryBin() {
+        return Main.overview._overview._controls._searchEntryBin;
+    }
+    
+    get mouseSensitive() { return this.#mouseSensitive; }
+    set mouseSensitive(value) {
+        this.#panelPressureBarrier.enabled = value;
+        this.#mouseSensitive = value;
+    }
+
+    get pressureThreshold() { return this.#pressureThreshold; }
+    set pressureThreshold(value) {
+        if (this.#pressureThreshold !== value) {
+            this.#pressureThreshold = value;
+            // Calling enabled will reset the #panelPressureBarrier with new threshold
+            this.#panelPressureBarrier.enabled = this.mouseSensitive;
+        }
+    }
+
+    get pressureTimeout() { return this.#pressureTimeout; }
+    set pressureTimeout(value) {
+        if (this.#pressureTimeout !== value) {
+            this.#pressureTimeout = value;
+            // Calling enabled will reset the #panelPressureBarrier with new timeout
+            this.#panelPressureBarrier.enabled = this.mouseSensitive;
+        }
     }
 
     hide(trigger, animationTime) {
@@ -131,7 +136,7 @@ export class PanelVisibilityManager {
 
         this.#pointerListener.stop();
 
-        this.#topPanel.hide(animationTime ?? this.#preferences.animationTimeAutohide);
+        this.#topPanel.hide(animationTime ?? this.#preferences.animation.ANIMATION_TIME_AUTOHIDE);
     }
 
     show(trigger, animationTime) {
@@ -140,11 +145,11 @@ export class PanelVisibilityManager {
 
         if (trigger == TriggerType.showingOverview
             && this.#topPanel.contains(...global.get_pointer())
-            && this.#preferences.hotCorner
+            && this.#preferences.HOTCORNER
         ) {
             this.#topPanel.reset();
         } else {
-            this.#topPanel.show(animationTime ?? this.#preferences.animationTimeAutohide, () => {
+            this.#topPanel.show(animationTime ?? this.#preferences.animation.ANIMATION_TIME_AUTOHIDE, () => {
                 this._updateIntellihideBox();
 
                 if(this.#intellihide.isPointerOutsideBox())
@@ -189,120 +194,101 @@ export class PanelVisibilityManager {
         DEBUG("_updateIntellihideBox()");
         this.#intellihide.targetRect = this.#topPanel.adjustedRect;
 
-        this.#desktopIconsUsableArea.resetMargins();
-        this.#desktopIconsUsableArea.setMargins(-1, this.#topPanel.height, 0, 0, 0);
-    }
-
-    _updateSettingsMouseSensitive() {
-        DEBUG(`_updateSettingsMouseSensitive()`);
-        this.#panelPressureBarrier.enabled = this.#preferences.mouseSensitive;
+        this.#desktopIconsUsableArea?.resetMargins();
+        this.#desktopIconsUsableArea?.setMargins(-1, this.#topPanel.height, 0, 0, 0);
+        // Calling enabled will reset the #panelPressureBarrier with new values
+        this.#panelPressureBarrier.enabled = this.mouseSensitive;
     }
 
     _updateSearchEntryPadding() {
         DEBUG(`_updateSearchEntryPadding()`);
-        if (!_searchEntryBin) return;
         const scale = Main.layoutManager.primaryMonitor.geometry_scale;
         const offset = this.#topPanel.height / scale; 
-        _searchEntryBin.set_style(this.#preferences.showInOverview ? `padding-top: ${offset}px;` : null);
+        this._searchEntryBin?.set_style(this.#preferences.SHOW_IN_OVERVIEW ? `padding-top: ${offset}px;` : null);
     }
 
     _autohideStatusChanged() {
         DEBUG(`_autohideStatusChanged()`);
         if (this.#intellihide.overlaps) {
             this.hide(TriggerType.intellihide);
-        } else if (this.#preferences.showInOverview || !Main.overview.visible) {
+        } else if (this.#preferences.SHOW_IN_OVERVIEW || !Main.overview.visible) {
             this.show(TriggerType.intellihide);
         }
     }
 
     _bindUIChanges() {
-        this.#preferences.add(
-            [
-                Main.overview,
-                'showing',
-                () => {
-                    if (this.#preferences.showInOverview) {
-                        this.#topPanel.reset();
-                    } else {
-                        this.hide(TriggerType.showingOverview, 0);
-                    } 
-                }
-            ],
-            [
-                Main.overview,
-                'hiding',
-                () => {
-                    if (this.#intellihide.overlaps && this.#intellihide.isPointerOutsideBox()) {
-                        this.hide(TriggerType.hidingOverview);
-                    } else {
-                        this.show(TriggerType.hidingOverview);
-                    }
-                }
-            ],
-            [
-                Main.panel,
-                'leave-event',
-                this._handleMenus.bind(this)
-            ],
-            [
-                this.#topPanel.panelBox,
-                'notify::anchor-y',
-                () => {
-                    this._updateIntellihideBox();
-                    this._updateSettingsMouseSensitive();
-                }
-            ],
-            [
-                this.#topPanel.panelBox,
-                'notify::height',
-                this._updateSearchEntryPadding.bind(this)
-            ],
-            [
-                Main.layoutManager,
-                'monitors-changed',
-                () => {
-                    this._base_y = this.#topPanel.y;
-                    this._updateIntellihideBox();
-                    this._updateSettingsMouseSensitive();
-                }
-            ],
-            [
-                this.#intellihide,
-                'status-changed',
-                this._autohideStatusChanged.bind(this)
-            ]
+        this.#connection.connect(
+            Main.overview,
+            'showing',
+            () => {
+                if (this.#preferences.SHOW_IN_OVERVIEW) {
+                    this.#topPanel.reset();
+                } else {
+                    this.hide(TriggerType.showingOverview, 0);
+                } 
+            }
         );
-
-        return false;
+        this.#connection.connect(
+            Main.overview,
+            'hiding',
+            () => {
+                if (this.#intellihide.overlaps && this.#intellihide.isPointerOutsideBox()) {
+                    this.hide(TriggerType.hidingOverview);
+                } else {
+                    this.show(TriggerType.hidingOverview);
+                }
+            }
+        );
+        this.#connection.connect(
+            Main.panel,
+            'leave-event',
+            this._handleMenus.bind(this)
+        );
+        this.#connection.connect(
+            this.#topPanel.panelBox,
+            'notify::anchor-y',
+            () => {
+                this._updateIntellihideBox();
+            }
+        );
+        this.#connection.connect(
+            this.#topPanel.panelBox,
+            'notify::height',
+            this._updateSearchEntryPadding.bind(this)
+        );
+        this.#connection.connect(
+            Main.layoutManager,
+            'monitors-changed',
+            () => {
+                this._base_y = this.#topPanel.y;
+                this._updateIntellihideBox();
+            }
+        );
+        this.#connection.connect(
+            this.#intellihide,
+            'status-changed',
+            this._autohideStatusChanged.bind(this)
+        );
     }
 
     _bindSettingsChanges() {
-        this.#preferences.bindSettings(
-            [
-                'changed::hot-corner',
-                (value) => this.#hotCorner.isAlwaysEnabled = value
-            ],
-            [
-                'changed::mouse-sensitive',
-                this._updateSettingsMouseSensitive.bind(this)
-            ],
-            [
-                'changed::pressure-timeout',
-                this._updateSettingsMouseSensitive.bind(this)
-            ],
-            [
-                'changed::pressure-threshold',
-                this._updateSettingsMouseSensitive.bind(this)
-            ],
-            [ 
-                'changed::show-in-overview',
-                this._updateSearchEntryPadding.bind(this)
-            ],
-            /***** CHECK HERE ******/
-            // [
-            //     'changed::enable-active-window',
-            //     this._updateIntellihideStatus.bind(this)
-            // ]
+        this.#preferences.ENABLE_ACTIVE_WINDOW_changed(
+            () => this.#intellihide.forceUpdate()
+        );
+        this.#preferences.HOT_CORNER_changed(
+            (value) => this.#hotCorner.isAlwaysEnabled = value
+        );
+        this.#preferences.SHOW_IN_OVERVIEW_changed(
+            () => this._updateSearchEntryPadding()
+        );
+        this.#preferences.pointer.MOUSE_SENSITIVE_changed(
+            (value) => this.mouseSensitive = value
+        );
+        this.#preferences.pointer.PRESSURE_THRESHOLD_changed(
+            (value) => this.pressureThreshold = value
+        );
+        this.#preferences.pointer.PRESSURE_TIMEOUT_changed(
+            (value) => this.#pressureTimeout = value
         );
     }
 };

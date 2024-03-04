@@ -1,157 +1,126 @@
-# French translation for the Hide Top Bar extension.
-# Copyright (C) 2021 Thomas Vogt
-# This file is distributed under the same license as the Hide Top Bar package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# French translations for Autohide Topbar.
+# Copyright (C) 2024
+# This file is distributed under the same license as the autohide-topbar package.
+# phoenixtoews <ph
+#: AutohidePrefs.ui:5
+msgid "Autohide"
+msgstr "Masquage Automatique"
+
+#: AutohidePrefs.ui:10
+msgid "General Autohide Preferences"
+msgstr "Prfrences Gnrales de Masquage Automatique"
+
+#: AutohidePrefs.ui:11
 msgid ""
+"General preferences that affect the hide and show behavior of the top panel"
 msgstr ""
-"Project-Id-Version: hidetopbar\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-14 15:55-0800\n"
-"PO-Revision-Date: 2015-12-30 20:22+0100\n"
-"Last-Translator: QD\n"
-"Language-Team: \n"
-"Language: fr\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
-"X-Poedit-SourceCharset: UTF-8\n"
+"Prfrences gnrales qui affectent le comportement de masquage et d'affichage "
+"du panneau suprieur"
 
-#: sensitivity.ui:6 sensitivity.ui:9
-msgid "Sensitivity"
-msgstr "Comportement, Sensibilité"
+#: AutohidePrefs.ui:14
+msgid "Enable Autohide only for active window"
+msgstr "Activer le masquage automatique uniquement pour la fentre active"
 
-#: sensitivity.ui:12
-msgid "Show panel when mouse approaches edge of the screen"
-msgstr ""
-"Afficher la barre supérieure quand la souris approche le bord de l'écran"
-
-#: sensitivity.ui:13
+#: AutohidePrefs.ui:15
 msgid ""
-"When enabled, show panel not only in overview but also when the mouse "
-"approaches the edge of the screen"
+"When enabled, the top panel will only hide if the active window takes the "
+"space."
 msgstr ""
+"Lorsqu'il est activ, le panneau suprieur ne se masquera que si la fentre "
+"active prend de la place."
 
-#: sensitivity.ui:18
-msgid "Show panel when fullscreen"
+#: AutohidePrefs.ui:20
+msgid "Show top panel in overview"
+msgstr "Afficher le panneau suprieur dans un aperu"
+
+#: AutohidePrefs.ui:21
+msgid "When enabled, the panel will be visible in overview."
+msgstr "Lorsquil est activ, le panneau sera visible dans un aperu."
+
+#: AutohidePrefs.ui:26
+msgid "Keep hot corner sensitive when top panel is hidden"
+msgstr "Gardez les coins chauds sensibles lorsque le panneau suprieur est cach"
+
+#: AutohidePrefs.ui:27
+msgid "When enabled, keeps the hot corner sensitive when panel is in hidden."
 msgstr ""
+"Lorsqu'il est activ, le coin chaud reste sensible lorsque le panneau est "
+"masqu."
 
-#: sensitivity.ui:19
+#: AutohidePrefs.ui:35
+msgid "Mouse Behavior Preferences"
+msgstr "Prfrences de comportement de la souris"
+
+#: AutohidePrefs.ui:36
+msgid "Preferences for when the mouse enters the top panel when it is hidden"
+msgstr ""
+"Prfrences pour le moment o la souris entre dans le panneau suprieur "
+"lorsqu'il est masqu"
+
+#: AutohidePrefs.ui:39
+msgid "Mouse sensitive"
+msgstr "Sensible  la souris"
+
+#: AutohidePrefs.ui:40
+msgid "Show the top panel when mouse approaches edge of the screen"
+msgstr ""
+"Afficher le panneau suprieur lorsque la souris s'approche du bord de l'cran"
+
+#: AutohidePrefs.ui:41
 msgid ""
-"When enabled, also show panel when mouse approaches edge of the screen when "
-"windows are in fullscreen mode"
+"When enabled, show the top panel not only in overview but also when the "
+"mouse approaches the edge of the screen."
 msgstr ""
+"Lorsqu'il est activ, affiche le panneau suprieur non seulement dans un "
+"aperu, mais galement lorsque la souris s'approche du bord de l'cran."
 
-#: sensitivity.ui:24
-msgid "Show panel in overview"
-msgstr ""
+#: AutohidePrefs.ui:45
+msgid "Mouse sensitive when fullscreen"
+msgstr "Sensible  la souris en plein cran"
 
-#: sensitivity.ui:25
-msgid "When enabled, the panel will be visible in overview"
-msgstr ""
-
-#: sensitivity.ui:30
-msgid "Keep hot corner sensitive, even in hidden state"
-msgstr "Conserver le coin actif, même si la barre supérieure est masquée"
-
-#: sensitivity.ui:31
+#: AutohidePrefs.ui:46
 msgid ""
-"When enabled, keeps the hot corner sensitive even when panel is in hidden"
+"When enabled, show the top panel when mouse approaches edge when fullscreen."
 msgstr ""
+"Lorsqu'il est activ, affiche le panneau suprieur lorsque la souris "
+"s'approche du bord en plein cran."
 
-#: sensitivity.ui:36
-msgid "Show overview when mouse approaches edge of the screen"
-msgstr ""
+#: AutohidePrefs.ui:51
+msgid "Mouse sensitive threshold (px):"
+msgstr "Seuil de sensibilit de la souris (px):"
 
-#: sensitivity.ui:37
-msgid ""
-"When enabled, the panel and overview are both shown when the mouse "
-"approaches the edge of the screen"
-msgstr ""
-
-#: sensitivity.ui:42
-#, fuzzy
-msgid "Keep round corners when top bar is hidden"
-msgstr "Conserver le coin actif, même si la barre supérieure est masquée"
-
-#: sensitivity.ui:43
-msgid ""
-"When enabled, keep the round corners on the top even when the panel is hidden"
-msgstr ""
-
-#: sensitivity.ui:48
-#, fuzzy
-msgid "Pressure barrier's threshold:"
-msgstr "Seuil de pression (force nécessaire à la souris pour déclencher)"
-
-#: sensitivity.ui:49
+#: AutohidePrefs.ui:52
 msgid ""
 "Number of pixels the mouse has to overrun in order to trigger the pressure "
-"barrier"
+"barrier."
 msgstr ""
+"Nombre de pixels que la souris doit dpasser pour dclencher la barrire de "
+"pression."
 
-#: sensitivity.ui:63
-#, fuzzy
-msgid "Pressure barrier's timeout:"
-msgstr "Délai de pression "
+#: AutohidePrefs.ui:66
+msgid "Mouse sensitive timeout (ms):"
+msgstr "Dlai d'expiration sensible  la souris (ms):"
 
-#: sensitivity.ui:64
-msgid "Amount of time in milliseconds before pressure barrier is triggered"
+#: AutohidePrefs.ui:67
+msgid "Amount of time in milliseconds before pressure barrier is triggered."
+msgstr "Dure en millisecondes avant le dclenchement de la barrire de pression."
+
+#: AutohidePrefs.ui:86
+msgid "Autohide Animation Preferences"
+msgstr "Masquer automatiquement les prfrences d'animation"
+
+#: AutohidePrefs.ui:87
+msgid "Settings for the slide animation when hiding or showing the top panel."
 msgstr ""
+"Paramtres de l'animation de la diapositive lors du masquage ou de "
+"l'affichage du panneau suprieur."
 
-#, fuzzy
-#~| msgid "In the above case show overview, too"
-#~ msgid "In the above case, also show panel when fullscreen"
-#~ msgstr ""
-#~ "Lancer la vue d'ensemble quand la souris approche de la barre supérieure"
+#: AutohidePrefs.ui:90
+msgid "Slide animation time (secs):"
+msgstr "Dure de l'animation de la diapositive (en secondes):"
 
-#~ msgid "In the above case show overview, too"
-#~ msgstr ""
-#~ "Lancer la vue d'ensemble quand la souris approche de la barre supérieure"
-
-#, fuzzy
-#~| msgid "Slide animation time when entering/leaving overview."
-#~ msgid "Slide animation time when entering/leaving overview:"
-#~ msgstr "Durée d'animation en entrant ou sortant de l'apercu"
-
-#, fuzzy
-#~| msgid "Slide animation time when mouse approaches edge of the screen."
-#~ msgid "Slide animation time when mouse approaches edge of the screen:"
-#~ msgstr "Durée d'animation du masquage de la barre supérieure"
-
-#~ msgid "Animation"
-#~ msgstr "Animation"
-
-#, fuzzy
-#~| msgid "Key that triggers the bar to be shown."
-#~ msgid ""
-#~ "Key that triggers the bar to be shown (press backspace to deactivate the "
-#~ "shortcut):"
-#~ msgstr "Touche déclenchant l'affichage de la barre supérieure"
-
-#, fuzzy
-#~| msgid "Delay before the bar rehides after key press."
-#~ msgid ""
-#~ "Delay before the bar rehides after key press (a value of 0 disables the "
-#~ "rehiding):"
-#~ msgstr ""
-#~ "Délai avant remasquage de la barre supérieure après appui sur la touche"
-
-#, fuzzy
-#~| msgid "Pressing the shortcut again rehides the panel."
-#~ msgid "Pressing the shortcut again rehides the panel"
-#~ msgstr "Appuyer à nouveau sur la touche remasque la barre supérieure"
-
-#~ msgid "Keyboard shortcuts"
-#~ msgstr "Raccourcis clavier"
-
-#~ msgid "Only hide panel when a window takes the space"
-#~ msgstr "Masque uniquement quand une fenêtre couvre sa place"
-
-#~ msgid "Only when the active window takes the space"
-#~ msgstr ""
-#~ "Masque uniquement quand la fenêtre active couvre la barre supérieure"
-
-#~ msgid "Intellihide"
-#~ msgstr "Masquage intelligent"
+#: AutohidePrefs.ui:91
+msgid "Amount of time it takes to slide the top panel in/out."
+msgstr ""
+"Temps ncessaire pour faire glisser le panneau suprieur vers l'intrieur/"
+"l'extrieur."

@@ -46,13 +46,13 @@ export class HotCornerManager {
 
     #enable() {
         let hotCorner = this.#findHotCorner();
-        hotCorner && hotCorner.setBarrierSize(this.height);
+        hotCorner?.setBarrierSize(this.height);
     }
 
     #disable() {
         GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
             let hotCorner = this.#findHotCorner();
-            hotCorner && hotCorner.setBarrierSize(0);
+            hotCorner?.setBarrierSize(0);
         });
     }
 

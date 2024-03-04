@@ -1,21 +1,3 @@
-/**
- * This file is part of Hide Top Bar
- *
- * Copyright 2020 Thomas Vogt
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
 
 // Note that the code in this file is taken from the Dash to Dock Gnome Shell
 // extension (https://github.com/micheleg/dash-to-dock) with only minor
@@ -31,8 +13,8 @@ const Signals = imports.signals;
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-import {getMonitorManager, DEBUG} from './convenience.js';
-import { TargetBox } from './TargetBox.js';
+import {TargetBox} from './TargetBox.js';
+import {Connections} from '../conveniences/connections.js';
 
 // A good compromise between reactivity and efficiency; to be tuned.
 const INTELLIHIDE_CHECK_INTERVAL = 100;
@@ -62,13 +44,19 @@ const handledWindowTypes = [
     Meta.WindowType.SPLASHSCREEN
 ];
 
+function getMonitorManager() {
+    if (global.backend.get_monitor_manager)
+        return global.backend.get_monitor_manager();
+    else
+        return Meta.MonitorManager.get();
+}
 /**
  * A rough and ugly implementation of the intellihide behaviour.
  * Intellihide object: emit 'status-changed' signal when the overlap of windows
  * with the provided targetBoxClutter.ActorBox changes;
  */
 export class Intellihide {
-    #settings = null;
+    #preferences = null;
     #monitorIndex = null;
     #tracker = Shell.WindowTracker.get_default();
     #focusApp = null; // The application whose window is focused.
@@ -79,51 +67,59 @@ export class Intellihide {
     #checkOverlapTimeoutContinue = false;
     #checkOverlapTimeoutId = 0;
     #trackedWindows = new Map();
+    #connection = new Connections();
 
-    constructor(settings, monitorIndex) {
-        // Load settings
-        this.#settings = settings;
+    constructor(preferences, monitorIndex) {
+        // Load preferences
+        this.#preferences = preferences;
         this.#monitorIndex = monitorIndex;
-
-        // Connect global signals
-        this.#settings.bindWithLabel('intellihide', [
-            // Listen for notification banners to appear or disappear
+        this.#connection.connect(
+             // Listen for notification banners to appear or disappear
+             Main.messageTray,
+             'show',
+             this._checkOverlap.bind(this)           
+        );
+        this.#connection.connect(
             Main.messageTray,
-            'show',
-            this._checkOverlap.bind(this)
-        ], [
+            'hide',
+            this._checkOverlap.bind(this)            
+        );
+        this.#connection.connect(
             Main.messageTray,
             'hide',
             this._checkOverlap.bind(this)
-        ], [
-            // Add signals on windows created from now on
-            global.display,
-            'window-created',
-            this._windowCreated.bind(this)
-        ], [
+        );
+        this.#connection.connect(
+             // Add signals on windows created from now on
+             global.display,
+             'window-created',
+             this._windowCreated.bind(this)           
+        );
+        this.#connection.connect(
             // triggered for instance when the window list order changes,
             // included when the workspace is switched
             global.display,
             'restacked',
-            this._checkOverlap.bind(this)
-        ], [
-            // when windows are alwasy on top, the focus window can change
+            this._checkOverlap.bind(this)         
+        );
+        this.#connection.connect(
+            // when windows are always on top, the focus window can change
             // without the windows being restacked. Thus monitor window focus change.
             this.#tracker,
             'notify::focus-app',
-            this._checkOverlap.bind(this)
-        ], [
-            // updates when monitor changes, for instance in multimonitor, when monitors are attached
-            getMonitorManager(),
-            'monitors-changed',
-            this._checkOverlap.bind(this)
-        ]);
+            this._checkOverlap.bind(this)         
+        );
+        this.#connection.connect(
+             // updates when monitor changes, for instance in multimonitor, when monitors are attached
+             getMonitorManager(),
+             'monitors-changed',
+             this._checkOverlap.bind(this)           
+        );
     }
 
     destroy() {
         // Disconnect global signals
-        this.#settings.unbindWithLabel('intellihide');
-
+        this.#connection.disconnect_all();
         this.#targetBox.destroy();
 
         // Remove  residual windows signals
@@ -161,15 +157,11 @@ export class Intellihide {
 
     isPointerInsideBox(point) {
         const [x, y] = point || global.get_pointer();
-        DEBUG(`Intellihide.isPointerInsideBox({x: ${x}, y: ${y}})`);
-        DEBUG(`Intellihide.#targetbox == ${this.#targetBox.toString()}`);
         let contains = this.#targetBox.contains(x,y);
-        DEBUG(`Intellihide.isPointerInsideBox - contains == ${contains}`);
         return this.#targetBox.contains(x, y);
     }
 
     isPointerOutsideBox(point) {
-        DEBUG(`Intellihide.isPointerOutsideBox(${point})`);
         return !this.isPointerInsideBox(point);
     }
 
@@ -224,7 +216,6 @@ export class Intellihide {
     }
 
     _checkOverlap() {
-        DEBUG("_checkOverlap()");
         if (!this.enabled) return;
 
         /* Limit the number of calls to the doCheckOverlap function */
@@ -249,7 +240,6 @@ export class Intellihide {
     }
 
     _doCheckOverlap() {
-        DEBUG("_doCheckOverlap()");
         if (!this.enabled) return;
 
         let overlaps = OverlapStatus.FALSE;
@@ -299,7 +289,7 @@ export class Intellihide {
         let wksp_index = meta_win.get_workspace().index();
 
         // Depending on the intellihide mode, exclude non-relevent windows
-        if (this.#settings.enableActiveWindow) {
+        if (this.#preferences.ENABLE_ACTIVE_WINDOW) {
                 // Skip windows of other apps
                 if (this.#focusApp) {
                     // The DropDownTerminal extension is not an application per se
